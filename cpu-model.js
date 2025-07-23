@@ -173,7 +173,7 @@ app.post('/cpu', (req, res) => {
   ];
 
   if (supportedIntents.includes(intent)) {
-    const cpuModelRaw = parameters["cpu-model"];
+    const cpuModelRaw = parameters["CPU-model"];
     if (!cpuModelRaw) {
       return res.json({ fulfillmentText: 'Please specify the CPU model.' });
     }
