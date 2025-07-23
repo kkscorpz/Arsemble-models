@@ -153,23 +153,25 @@ app.post('/webhook', (req, res) => {
   }
 
   const supportedIntents = [
-    "Get_CPU_Intel_Core_i9_14900K_Details",
-  "Get_CPU_Intel_Core_i7_14700K_Details",
-  "Get_CPU_Intel_Core_i5_14600K_Details",
-  "Get_CPU_Intel_Core_i9_13900K_Details",
-  "Get_CPU_Intel_Core_i7_13700K_Details",
-  "Get_CPU_Intel_Core_i5_13600K_Details",
-  "Get_CPU_Intel_Core_i5_12400F_Details",
-  "Get_CPU_Intel_Core_i3_12100F_Details",
-  "Get_CPU_AMD_Ryzen_9_7950X_Details",
-  "Get_CPU_AMD_Ryzen_9_7900X_Details",
-  "Get_CPU_AMD_Ryzen_7_7700X_Details",
-  "Get_CPU_AMD_Ryzen_5_7600X_Details",
-  "Get_CPU_AMD_Ryzen_9_5950X_Details",
-  "Get_CPU_AMD_Ryzen_7_5800X_Details",
+    //ryzen
+    "Get_CPU_AMD_Ryzen_3_3200G_Details",
+  "Get_CPU_AMD_Ryzen_5_5600G_Details",
   "Get_CPU_AMD_Ryzen_5_5600X_Details",
-  "Get_CPU_AMD_Ryzen_3_3200G_Details",
-  "Get_CPU_AMD_Ryzen_5_5600G_Details"
+  "Get_CPU_AMD_Ryzen_7_5700X_Details",
+  "Get_CPU_AMD_Ryzen_7_7700X_Details",
+  "Get_CPU_AMD_Ryzen_9_7950X_Details",
+  "Get_CPU_AMD_Ryzen_9_9900X3D_Details",
+  "Get_CPU_AMD_Ryzen_9_9900X_Details",
+  
+  //intel
+  "Get_CPU_Intel_Core_i3-13100_Details",
+  "Get_CPU_Intel_Core_i3-14100_Details",
+  "Get_CPU_Intel_Core_i5-13400_Details",
+  "Get_CPU_Intel_Core_i5-14500_Details",
+  "Get_CPU_Intel_Core_i5-14600K_Details",
+  "Get_CPU_Intel_Core_i7-13700K_Details",
+  "Get_CPU_Intel_Core_i7-14700K_Details",
+  "Get_CPU_Intel_Core_i9-14900K_Details"
     
   ];
 
