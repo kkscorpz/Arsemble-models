@@ -168,7 +168,8 @@ app.post('/webhook', (req, res) => {
   "Get_CPU_AMD_Ryzen_9_5950X_Details",
   "Get_CPU_AMD_Ryzen_7_5800X_Details",
   "Get_CPU_AMD_Ryzen_5_5600X_Details",
-  "Get_CPU_AMD_Ryzen_3_3200G_Details"
+  "Get_CPU_AMD_Ryzen_3_3200G_Details",
+  "Get_CPU_AMD_Ryzen_5_5600G_Details"
     
   ];
 
