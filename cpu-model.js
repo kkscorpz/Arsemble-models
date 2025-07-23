@@ -140,7 +140,7 @@ const cpuDatabase = {
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('CPU Webhook Server is running!');
+  res.send('CPU Server is running!');
 });
 
 // Webhook route
