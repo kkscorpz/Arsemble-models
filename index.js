@@ -12,7 +12,7 @@ app.post('/webhook', (req, res) => {
 
   if (intentName === 'ram-model') {
     ramHandler(req, res);
-  } else if (intentName === 'cpu-model') {
+  } else if (intentName === 'CPU-model') {
     cpuHandler(req, res);
   } else {
     res.json({
