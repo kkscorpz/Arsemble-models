@@ -144,7 +144,7 @@ app.get('/', (req, res) => {
 });
 
 // Webhook route
-app.post('/cpu', (req, res) => {
+app.post('/webhook', (req, res) => {
   const intent = req.body.queryResult?.intent?.displayName;
   const parameters = req.body.queryResult?.parameters;
 
