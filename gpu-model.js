@@ -46,7 +46,7 @@ function handleGPUIntent(intent, parameters) {
     console.log('  [GPU Handler] Received parameters:', parameters);
 
     // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'gpu_model' (with an underscore)
-    const gpuModelRaw = parameters["gpu_model"];
+    const gpuModelRaw = parameters["gpu-model"];
 
     if (!gpuModelRaw) {
         console.warn('  [GPU Handler] WARNING: "gpu_model" parameter is missing in the request.');
