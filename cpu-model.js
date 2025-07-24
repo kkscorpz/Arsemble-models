@@ -156,7 +156,7 @@ const cpuModelMap = {
 };
 
 function handleCPUIntent(intent, parameters) {
-  const cpuModelRaw = parameters["CPU-model"];
+  const cpuModelRaw = parameters["cpu-model"];
   if (!cpuModelRaw) {
     return 'Please specify the CPU model.';
   }
