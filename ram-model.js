@@ -1,10 +1,3 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// RAM Data
 const ramDatabase = {
   "kingston fury beast ddr4": {
     name: "Kingston FURY Beast DDR4",
@@ -12,8 +5,7 @@ const ramDatabase = {
     type: "DDR4",
     speed: "3200 MHz",
     voltage: "1.35 V",
-    compatibility:
-      "Requires motherboard with DDR4 DIMM slots (288-pin) supporting 1.35V and 3200 MHz. Check motherboard QVL for compatibility."
+    compatibility: "Requires motherboard with DDR4 DIMM slots (288-pin) supporting 1.35V and 3200 MHz. Check motherboard QVL for compatibility."
   },
   "kingston hyperx fury ddr3": {
     name: "Kingston HyperX FURY DDR3",
@@ -21,8 +13,7 @@ const ramDatabase = {
     type: "DDR3",
     speed: "1600 MHz",
     voltage: "1.5 V",
-    compatibility:
-      "For older systems only. Requires a DDR3 (240-pin) motherboard. Incompatible with modern DDR4/DDR5 systems."
+    compatibility: "For older systems only. Requires a DDR3 (240-pin) motherboard. Incompatible with modern DDR4/DDR5 systems."
   },
   "hkc pc ddr4-3200 dimm": {
     name: "HKC PC DDR4-3200 DIMM",
@@ -30,8 +21,7 @@ const ramDatabase = {
     type: "DDR4",
     speed: "3200 MHz",
     voltage: "1.2 V",
-    compatibility:
-      "Works with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Recommend using matched pairs and checking motherboard QVL."
+    compatibility: "Works with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Recommend using matched pairs and checking motherboard QVL."
   },
   "hkcmemory hu40 ddr4 (16gb)": {
     name: "HKCMEMORY HU40 DDR4 (16GB)",
@@ -39,8 +29,7 @@ const ramDatabase = {
     type: "DDR4",
     speed: "3200 MHz",
     voltage: "1.2 V",
-    compatibility:
-      "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Check QVL for higher capacity module compatibility."
+    compatibility: "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Check QVL for higher capacity module compatibility."
   },
   "hkcmemory hu40 ddr4 (8gb)": {
     name: "HKCMEMORY HU40 DDR4 (8GB)",
@@ -48,55 +37,24 @@ const ramDatabase = {
     type: "DDR4",
     speed: "3200 MHz",
     voltage: "1.2 V",
-    compatibility:
-      "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Matched pairs recommended for dual-channel. Always check motherboard QVL."
+    compatibility: "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Matched pairs recommended for dual-channel. Always check motherboard QVL."
   }
 };
 
-// Optional root route
-app.get('/', (req, res) => {
-  res.send('Server is running!');
-});
-
-// Webhook route
-app.post('/webhook', (req, res) => {
-  const intent = req.body.queryResult?.intent?.displayName;
-  const parameters = req.body.queryResult?.parameters;
-
-  if (!intent || !parameters) {
-    return res.json({ fulfillmentText: 'Invalid request payload.' });
+function handleRAMIntent(intent, parameters) {
+  const ramModelRaw = parameters["ram-model"];
+  if (!ramModelRaw) {
+    return 'Please specify the RAM model.';
   }
 
-  // List of RAM-related intents
-  const supportedIntents = [
-    'Get_RAM_Kingston_FURY_Beast_DDR4_Details',
-    'Get_RAM_Kingston_HyperX_FURY_DDR3_Details',
-    'Get_RAM_HKC_PC_DDR4-3200_DIMM_Details',
-    'Get_RAM_HKCMEMORY_HU40_DDR4_16GB_Details',
-    'Get_RAM_HKCMEMORY_HU40_DDR4_8GB_Details'
-  ];
+  const ramModel = ramModelRaw.toLowerCase().trim();
+  const ram = ramDatabase[ramModel];
 
-  if (supportedIntents.includes(intent)) {
-    const ramModelRaw = parameters["ram-model"];
-    if (!ramModelRaw) {
-      return res.json({ fulfillmentText: 'Please specify the RAM model.' });
-    }
-
-    const ramModel = ramModelRaw.toLowerCase().trim();
-    const ram = ramDatabase[ramModel];
-
-    if (ram) {
-      const responseText = `The ${ram.name} RAM comes in ${ram.capacity}, is ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. Compatibility: ${ram.compatibility}`;
-      return res.json({ fulfillmentText: responseText });
-    } else {
-      return res.json({ fulfillmentText: `Sorry, I couldn't find specs for the RAM model "${ramModelRaw}".` });
-    }
+  if (ram) {
+    return `The ${ram.name} RAM comes in ${ram.capacity}, is ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. Compatibility: ${ram.compatibility}`;
   } else {
-    return res.json({ fulfillmentText: `Intent "${intent}" not handled.` });
+    return `Sorry, I couldn't find specs for the RAM model "${ramModelRaw}".`;
   }
-});
+}
 
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = { handleRAMIntent };

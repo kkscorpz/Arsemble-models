@@ -1,10 +1,4 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// CPU Data
+// CPU database
 const cpuDatabase = {
   "intel core i9-14900k": {
     name: "Intel Core i9-14900K",
@@ -70,8 +64,6 @@ const cpuDatabase = {
     tdp: "60W TDP / ~89W max",
     compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU"
   },
-
-  // AMD CPUs
   "amd ryzen 9 7950x": {
     name: "AMD Ryzen 9 7950X",
     socket: "AM5",
@@ -138,61 +130,53 @@ const cpuDatabase = {
   }
 };
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('CPU Webhook Server is running!');
-});
+// CPU Model Variants (mapping user inputs to database keys)
+const cpuModelMap = {
+  "intel core i5-14500": "intel core i5-14500",
+  "core i5-14500": "intel core i5-14500",
+  "i5-14500": "intel core i5-14500",
+  "intel i5-14500": "intel core i5-14500",
 
-// Webhook route
-app.post('/cpu', (req, res) => {
-  const intent = req.body.queryResult?.intent?.displayName;
-  const parameters = req.body.queryResult?.parameters;
+  "intel core i5-13400": "intel core i5-13400",
+  "core i5-13400": "intel core i5-13400",
+  "i5-13400": "intel core i5-13400",
 
-  if (!intent || !parameters) {
-    return res.json({ fulfillmentText: 'Invalid request payload.' });
+  "intel core i9-14900k": "intel core i9-14900k",
+  "core i9-14900k": "intel core i9-14900k",
+  "i9-14900k": "intel core i9-14900k",
+
+  "intel core i3-14100": "intel core i3-14100",
+  "i3-14100": "intel core i3-14100",
+
+  "amd ryzen 5 5600x": "amd ryzen 5 5600x",
+  "ryzen 5 5600x": "amd ryzen 5 5600x",
+  "5600x": "amd ryzen 5 5600x",
+
+  // Add more mappings as needed...
+};
+
+function handleCPUIntent(intent, parameters) {
+  const cpuModelRaw = parameters["cpu-model"];
+  if (!cpuModelRaw) {
+    return 'Please specify the CPU model.';
   }
 
-  const supportedIntents = [
-    "Get_CPU_Intel_Core_i9_14900K_Details",
-  "Get_CPU_Intel_Core_i7_14700K_Details",
-  "Get_CPU_Intel_Core_i5_14600K_Details",
-  "Get_CPU_Intel_Core_i9_13900K_Details",
-  "Get_CPU_Intel_Core_i7_13700K_Details",
-  "Get_CPU_Intel_Core_i5_13600K_Details",
-  "Get_CPU_Intel_Core_i5_12400F_Details",
-  "Get_CPU_Intel_Core_i3_12100F_Details",
-  "Get_CPU_AMD_Ryzen_9_7950X_Details",
-  "Get_CPU_AMD_Ryzen_9_7900X_Details",
-  "Get_CPU_AMD_Ryzen_7_7700X_Details",
-  "Get_CPU_AMD_Ryzen_5_7600X_Details",
-  "Get_CPU_AMD_Ryzen_9_5950X_Details",
-  "Get_CPU_AMD_Ryzen_7_5800X_Details",
-  "Get_CPU_AMD_Ryzen_5_5600X_Details",
-  "Get_CPU_AMD_Ryzen_3_3200G_Details"
-    
-  ];
-
-  if (supportedIntents.includes(intent)) {
-    const cpuModelRaw = parameters["cpu-model"];
-    if (!cpuModelRaw) {
-      return res.json({ fulfillmentText: 'Please specify the CPU model.' });
-    }
-
-    const cpuModel = cpuModelRaw.toLowerCase().trim();
-    const cpu = cpuDatabase[cpuModel];
-
-    if (cpu) {
-      const responseText = `The ${cpu.name} has ${cpu.cores}, ${cpu.threads}, a base clock of ${cpu.baseClock}, and a boost up to ${cpu.boostClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
-      return res.json({ fulfillmentText: responseText });
-    } else {
-      return res.json({ fulfillmentText: `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".` });
-    }
-  } else {
-    return res.json({ fulfillmentText: `Intent "${intent}" not handled.` });
+  const modelKey = cpuModelMap[cpuModelRaw.toLowerCase().trim()];
+  if (!modelKey) {
+    return `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".`;
   }
-});
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  const cpu = cpuDatabase[modelKey];
+  if (!cpu) {
+    return `Sorry, I couldn't find full specs for "${cpuModelRaw}".`;
+  }
+
+  return `The ${cpu.name} has ${cpu.coresThreads}, a base clock of ${cpu.baseClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
+}
+
+module.exports = { handleCPUIntent };
+
+
+
+//**
+//  */
