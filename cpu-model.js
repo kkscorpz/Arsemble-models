@@ -1,3 +1,4 @@
+// CPU database
 const cpuDatabase = {
   "intel core i9-14900k": {
     name: "Intel Core i9-14900K",
@@ -129,21 +130,48 @@ const cpuDatabase = {
   }
 };
 
+// CPU Model Variants (mapping user inputs to database keys)
+const cpuModelMap = {
+  "intel core i5-14500": "intel core i5-14500",
+  "core i5-14500": "intel core i5-14500",
+  "i5-14500": "intel core i5-14500",
+  "intel i5-14500": "intel core i5-14500",
+
+  "intel core i5-13400": "intel core i5-13400",
+  "core i5-13400": "intel core i5-13400",
+  "i5-13400": "intel core i5-13400",
+
+  "intel core i9-14900k": "intel core i9-14900k",
+  "core i9-14900k": "intel core i9-14900k",
+  "i9-14900k": "intel core i9-14900k",
+
+  "intel core i3-14100": "intel core i3-14100",
+  "i3-14100": "intel core i3-14100",
+
+  "amd ryzen 5 5600x": "amd ryzen 5 5600x",
+  "ryzen 5 5600x": "amd ryzen 5 5600x",
+  "5600x": "amd ryzen 5 5600x",
+
+  // Add more mappings as needed...
+};
+
 function handleCPUIntent(intent, parameters) {
   const cpuModelRaw = parameters["CPU-model"];
-
   if (!cpuModelRaw) {
     return 'Please specify the CPU model.';
   }
 
-  const cpuModel = cpuModelRaw.toLowerCase().trim();
-  const cpu = cpuDatabase[cpuModel];
-
-  if (cpu) {
-    return `The ${cpu.name} has ${cpu.coresThreads}, a base clock of ${cpu.baseClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
-  } else {
+  const modelKey = cpuModelMap[cpuModelRaw.toLowerCase().trim()];
+  if (!modelKey) {
     return `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".`;
   }
+
+  const cpu = cpuDatabase[modelKey];
+  if (!cpu) {
+    return `Sorry, I couldn't find full specs for "${cpuModelRaw}".`;
+  }
+
+  return `The ${cpu.name} has ${cpu.coresThreads}, a base clock of ${cpu.baseClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
 }
 
 module.exports = { handleCPUIntent };
