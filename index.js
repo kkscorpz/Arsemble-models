@@ -1,11 +1,10 @@
+
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
-const { handleMotherboardIntent } = require('./motherboard-model');
-
 
 app.use(express.json());
 
@@ -52,22 +51,13 @@ app.post('/webhook', (req, res) => {
     'Get_RAM_HKCMEMORY_HU40_DDR4_8GB_Details'
   ];
 
-
-  const motherboardIntents = [
-  'Get_Motherboard_ASUS_Prime_B450M-A_II_Details',
-  'Get_Motherboard_MSI_B660M_MORTAR_WIFI_DDR4_Details'
-];
-
-
   let responseText = 'Intent not recognized.';
 
   if (cpuIntents.includes(intent)) {
-  responseText = handleCPUIntent(intent, parameters);
-} else if (ramIntents.includes(intent)) {
-  responseText = handleRAMIntent(intent, parameters);
-} else if (motherboardIntents.includes(intent)) {
-  responseText = handleMotherboardIntent(intent, parameters);
-}
+    responseText = handleCPUIntent(intent, parameters);
+  } else if (ramIntents.includes(intent)) {
+    responseText = handleRAMIntent(intent, parameters);
+  }
 
   return res.json({ fulfillmentText: responseText });
 });

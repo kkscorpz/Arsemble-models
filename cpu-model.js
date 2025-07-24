@@ -161,22 +161,21 @@ function handleCPUIntent(intent, parameters) {
     return 'Please specify the CPU model.';
   }
 
-  const modelKey = cpuModelMap[cpuModelRaw.toLowerCase().trim()];
-  if (!modelKey) {
-    return `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".`;
+    const cpuModel = cpuModelRaw.toLowerCase().trim();
+    const cpu = cpuDatabase[cpuModel];
+
+    if (cpu) {
+      const responseText = `The ${cpu.name} has ${cpu.cores}, ${cpu.threads}, a base clock of ${cpu.baseClock}, and a boost up to ${cpu.boostClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
+      return res.json({ fulfillmentText: responseText });
+    } else {
+      return res.json({ fulfillmentText: `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".` });
+    }
+  } else {
+    return res.json({ fulfillmentText: `Intent "${intent}" not handled.` });
   }
+});
 
-  const cpu = cpuDatabase[modelKey];
-  if (!cpu) {
-    return `Sorry, I couldn't find full specs for "${cpuModelRaw}".`;
-  }
-
-  return `The ${cpu.name} has ${cpu.coresThreads}, a base clock of ${cpu.baseClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
-}
-
-module.exports = { handleCPUIntent };
-
-
-
-//**
-//  */
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
