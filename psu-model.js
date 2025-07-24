@@ -86,7 +86,7 @@ function handlePSUIntent(intent, parameters) {
     console.log('  [PSU Handler] Received parameters:', parameters);
 
     // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'psu_model' (with an underscore)
-    const psuModelRaw = parameters["psu_model"];
+    const psuModelRaw = parameters["psu-model"];
 
     if (!psuModelRaw) {
         console.warn('  [PSU Handler] WARNING: "psu_model" parameter is missing in the request.');
