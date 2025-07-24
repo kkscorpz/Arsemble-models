@@ -78,7 +78,7 @@ function handleStorageIntent(intent, parameters) {
     console.log('  [Storage Handler] Received parameters:', parameters);
 
     // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'storage_model' (with an underscore)
-    const storageModelRaw = parameters["storage_model"];
+    const storageModelRaw = parameters["storage-model"];
 
     if (!storageModelRaw) {
         console.warn('  [Storage Handler] WARNING: "storage_model" parameter is missing in the request.');
