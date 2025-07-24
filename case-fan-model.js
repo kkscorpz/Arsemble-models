@@ -61,7 +61,7 @@ function handleCaseFanIntent(intent, parameters) {
     console.log('  [Case Fan Handler] Received parameters:', parameters);
 
     // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'case_fan_model' (with an underscore)
-    const caseFanModelRaw = parameters["case_fan_model"];
+    const caseFanModelRaw = parameters["case-fan-model"];
 
     if (!caseFanModelRaw) {
         console.warn('  [Case Fan Handler] WARNING: "case_fan_model" parameter is missing in the request.');
