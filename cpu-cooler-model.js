@@ -72,7 +72,7 @@ function handleCPUCoolerIntent(intent, parameters) {
     console.log('  [CPU Cooler Handler] Received parameters:', parameters);
 
     // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'cooler_model' (with an underscore)
-    const coolerModelRaw = parameters["cooler_model"];
+    const coolerModelRaw = parameters["cooler-model"];
 
     if (!coolerModelRaw) {
         console.warn('  [CPU Cooler Handler] WARNING: "cooler_model" parameter is missing in the request.');
