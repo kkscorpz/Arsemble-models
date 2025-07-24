@@ -75,23 +75,23 @@ const motherboardDatabase = {
 };
 
 // Motherboard Model Variants (mapping user inputs to database keys)
-// Ensure these map correctly to your database keys. Expand as needed for more synonyms.
+// Ensure these keys exactly match the keys in motherboardDatabase
 const motherboardModelMap = {
     "asus prime b550m-k": "asus prime b550m-k",
     "prime b550m-k": "asus prime b550m-k",
     "b550m-k": "asus prime b550m-k",
-    "asus b550m-k": "asus prime b550m-k",
+    "asus b550m-k": "asus prime b550m-k", // Add common variations
 
     "msi b450m a pro max ii": "msi b450m a pro max ii",
     "b450m a pro max ii": "msi b450m a pro max ii",
-    "msi b450m-a pro max ii": "msi b450m a pro max ii",
+    "msi b450m-a pro max ii": "msi b450m a pro max ii", // Often typed with hyphen
     "b450m-a pro max ii": "msi b450m a pro max ii",
-    "msi b450m-a": "msi b450m a pro max ii",
+    "msi b450m-a": "msi b450m a pro max ii", // Shorter form
 
     "msi pro h610m s ddr4": "msi pro h610m s ddr4",
     "pro h610m s ddr4": "msi pro h610m s ddr4",
     "h610m s ddr4": "msi pro h610m s ddr4",
-    "msi h610m-s ddr4": "msi pro h610m s ddr4",
+    "msi h610m-s ddr4": "msi pro h610m s ddr4", // Common hyphens
 
     "ramsta rs-b450mp": "ramsta rs-b450mp",
     "rs-b450mp": "ramsta rs-b450mp",
@@ -124,7 +124,7 @@ function handleMotherboardIntent(intent, parameters) {
     console.log('  [MB Handler] Called for intent:', intent);
     console.log('  [MB Handler] Received parameters:', parameters);
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends (lowercase 'motherboard-model')
+    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which should be 'motherboard-model' (lowercase)
     const rawModel = parameters["motherboard-model"];
 
     if (!rawModel) {
