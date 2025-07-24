@@ -1,10 +1,3 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// CPU Data
 const cpuDatabase = {
   "intel core i9-14900k": {
     name: "Intel Core i9-14900K",
@@ -70,8 +63,6 @@ const cpuDatabase = {
     tdp: "60W TDP / ~89W max",
     compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU"
   },
-
-  // AMD CPUs
   "amd ryzen 9 7950x": {
     name: "AMD Ryzen 9 7950X",
     socket: "AM5",
@@ -138,64 +129,20 @@ const cpuDatabase = {
   }
 };
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('CPU Server is running!');
-});
-
-// Webhook route
-app.post('/webhook', (req, res) => {
-  const intent = req.body.queryResult?.intent?.displayName;
-  const parameters = req.body.queryResult?.parameters;
-
-  if (!intent || !parameters) {
-    return res.json({ fulfillmentText: 'Invalid request payload.' });
+function handleCPUIntent(intent, parameters) {
+  const cpuModelRaw = parameters["CPU-model"];
+  if (!cpuModelRaw) {
+    return 'Please specify the CPU model.';
   }
 
-  const supportedIntents = [
-    //ryzen
-    "Get_CPU_AMD_Ryzen_3_3200G_Details",
-  "Get_CPU_AMD_Ryzen_5_5600G_Details",
-  "Get_CPU_AMD_Ryzen_5_5600X_Details",
-  "Get_CPU_AMD_Ryzen_7_5700X_Details",
-  "Get_CPU_AMD_Ryzen_7_7700X_Details",
-  "Get_CPU_AMD_Ryzen_9_7950X_Details",
-  "Get_CPU_AMD_Ryzen_9_9900X3D_Details",
-  "Get_CPU_AMD_Ryzen_9_9900X_Details",
-  
-  //intel
-  "Get_CPU_Intel_Core_i3-13100_Details",
-  "Get_CPU_Intel_Core_i3-14100_Details",
-  "Get_CPU_Intel_Core_i5-13400_Details",
-  "Get_CPU_Intel_Core_i5-14500_Details",
-  "Get_CPU_Intel_Core_i5-14600K_Details",
-  "Get_CPU_Intel_Core_i7-13700K_Details",
-  "Get_CPU_Intel_Core_i7-14700K_Details",
-  "Get_CPU_Intel_Core_i9-14900K_Details"
-    
-  ];
+  const cpuModel = cpuModelRaw.toLowerCase().trim();
+  const cpu = cpuDatabase[cpuModel];
 
-  if (supportedIntents.includes(intent)) {
-    const cpuModelRaw = parameters["CPU-model"];
-    if (!cpuModelRaw) {
-      return res.json({ fulfillmentText: 'Please specify the CPU model.' });
-    }
-
-    const cpuModel = cpuModelRaw.toLowerCase().trim();
-    const cpu = cpuDatabase[cpuModel];
-
-    if (cpu) {
-      const responseText = `The ${cpu.name} has ${cpu.cores}, ${cpu.threads}, a base clock of ${cpu.baseClock}, and a boost up to ${cpu.boostClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
-      return res.json({ fulfillmentText: responseText });
-    } else {
-      return res.json({ fulfillmentText: `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".` });
-    }
+  if (cpu) {
+    return `The ${cpu.name} has ${cpu.coresThreads}, a base clock of ${cpu.baseClock}. It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. Compatibility: ${cpu.compatibility}`;
   } else {
-    return res.json({ fulfillmentText: `Intent "${intent}" not handled.` });
+    return `Sorry, I couldn't find specs for the CPU model "${cpuModelRaw}".`;
   }
-});
+}
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = { handleCPUIntent };
