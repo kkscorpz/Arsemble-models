@@ -6,6 +6,11 @@ const PORT = process.env.PORT || 3000;
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
 const { handleMotherboardIntent } = require('./motherboard-model');
+const { handleGPUIntent } = require('./gpu-model');
+const { handleCaseFanIntent } = require('./case-fan-model');
+const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
+const { handleStorageIntent } = require('./storage-model');
+const { handlePSUIntent } = require('./psu-model');
 
 // Middleware to parse JSON request bodies from Dialogflow
 app.use(express.json());
@@ -75,6 +80,38 @@ app.post('/webhook', (req, res) => {
         "Get_Motherboard_GIGABYTE_H610M_K_DDR4_Details"
     ];
 
+    const gpuIntents = [
+        "Get_GPU_Gigabyte_RTX_3050_EAGLE_OC_Details"
+    ];
+
+    const caseFanIntents = [
+        "Get_Case_Fan_COOLMOON_YX120_Details",
+        "Get_Case_Fan_Cooler_Master_SickleFlow_120_ARGB_Details",
+        "Get_Case_Fan_Arctic_P12_PWM_PST_Details"
+    ];
+
+    const cpuCoolerIntents = [
+        "Get_CPU_Cooler_COOLMOON_AOSOR_S400_Details",
+        "Get_CPU_Cooler_Cooler_Master_Hyper_212_Black_Edition_Details",
+        "Get_CPU_Cooler_Thermalright_Peerless_Assassin_120_SE_Details",
+        "Get_CPU_Cooler_Deepcool_LE500_MARRS_Details"
+    ];
+
+    const storageIntents = [
+        "Get_Storage_Seagate_Barracuda_1TB_Details",
+        "Get_Storage_Western_Digital_Blue_2TB_Details",
+        "Get_Storage_Samsung_970_EVO_Plus_1TB_Details",
+        "Get_Storage_Crucial_MX500_500GB_Details"
+    ];
+
+    const psuIntents = [
+        "Get_PSU_Corsair_RM850x_Details",
+        "Get_PSU_Cooler_Master_MWE_White_750W_Details",
+        "Get_PSU_Corsair_CX650_Details",
+        "Get_PSU_Cougar_GX-F_750W_Details",
+        "Get_PSU_Seasonic_Focus_Plus_Gold_550W_Details"
+    ];
+
     // Route the request to the appropriate handler function
     if (cpuIntents.includes(intentDisplayName)) {
         fulfillmentResponseText = handleCPUIntent(intentDisplayName, parameters);
@@ -82,8 +119,19 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponseText = handleRAMIntent(intentDisplayName, parameters);
     } else if (motherboardIntents.includes(intentDisplayName)) {
         fulfillmentResponseText = handleMotherboardIntent(intentDisplayName, parameters);
-    } else {
-        console.warn(`WARN: Intent '${intentDisplayName}' not found in any handler's list.`);
+    } else if (gpuIntents.includes(intentDisplayName)) {
+        fulfillmentResponseText = handleGPUIntent(intentDisplayName, parameters);
+    } else if (caseFanIntents.includes(intentDisplayName)) {
+        fulfillmentResponseText = handleCaseFanIntent(intentDisplayName, parameters);
+    } else if (cpuCoolerIntents.includes(intentDisplayName)) {
+        fulfillmentResponseText = handleCPUCoolerIntent(intentDisplayName, parameters);
+    } else if (storageIntents.includes(intentDisplayName)) {
+        fulfillmentResponseText = handleStorageIntent(intentDisplayName, parameters);
+    } else if (psuIntents.includes(intentDisplayName)) {
+        fulfillmentResponseText = handlePSUIntent(intentDisplayName, parameters);
+    }
+    else {
+        console.warn(`WARN: Intent '${intentDisplayName}' not found in any specific handler's list.`);
         fulfillmentResponseText = 'I\'m sorry, I don\'t have information for that component type yet.';
     }
 
