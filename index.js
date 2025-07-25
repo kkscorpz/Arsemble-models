@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Import handler functions (ensure these files export the respective functions)
+// Import handler functions from their respective modules
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
 const { handleMotherboardIntent } = require('./motherboard-model');
@@ -72,7 +72,9 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = ramHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = ramHandlerResult.outputContexts;
     } else if (cpuIntents.includes(intentDisplayName)) {
-        // Other handlers need to return { fulfillmentText, outputContexts } to manage contexts
+        // NOTE: handleCPUIntent (and others) are assumed to be in their respective files.
+        // If these handlers are also updated to return an object { fulfillmentText, outputContexts },
+        // then update this block similarly to the ramIntent block.
         fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     } else if (motherboardIntents.includes(intentDisplayName)) {
         fulfillmentResponse.fulfillmentText = handleMotherboardIntent(intentDisplayName, parameters);
@@ -97,38 +99,6 @@ app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-// --- Placeholder/Example for other component handlers (if not yet updated) ---
-// These are simple examples assuming they currently just return a string.
-// You'll need to update these in their respective files if you want them to handle contexts
-// and specific detail requests like RAM does.
-
-function handleCPUIntent(intent, parameters) {
-    const cpuModelRaw = parameters['cpu-model'];
-    return `Details for CPU ${cpuModelRaw} are not yet fully implemented.`;
-}
-
-function handleMotherboardIntent(intent, parameters) {
-    const mbModelRaw = parameters['motherboard-model'];
-    return `Details for Motherboard ${mbModelRaw} are not yet fully implemented.`;
-}
-
-function handleGPUIntent(intent, parameters) {
-    const gpuModelRaw = parameters['gpu-model'];
-    return `Details for GPU ${gpuModelRaw} are not yet fully implemented.`;
-}
-function handleCaseFanIntent(intent, parameters) {
-    const fanModelRaw = parameters['case-fan-model'];
-    return `Details for Case Fan ${fanModelRaw} are not yet fully implemented.`;
-}
-function handleCPUCoolerIntent(intent, parameters) {
-    const coolerModelRaw = parameters['cpu-cooler-model'];
-    return `Details for CPU Cooler ${coolerModelRaw} are not yet fully implemented.`;
-}
-function handleStorageIntent(intent, parameters) {
-    const storageModelRaw = parameters['storage-model'];
-    return `Details for Storage ${storageModelRaw} are not yet fully implemented.`;
-}
-function handlePSUIntent(intent, parameters) {
-    const psuModelRaw = parameters['psu-model'];
-    return `Details for PSU ${psuModelRaw} are not yet fully implemented.`;
-}
+// IMPORTANT: The placeholder functions that were previously here have been removed
+// to resolve the 'already declared' error. Ensure your actual cpu-model.js,
+// motherboard-model.js, etc., files export the corresponding handle functions.
