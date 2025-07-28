@@ -1,9 +1,10 @@
+// psu-model.js
 // PSU database
 const psuDatabase = {
     "corsair rm850x": {
         name: "Corsair RM850x",
         wattage: "850W",
-        efficiencyRating: "80 Plus Gold",
+        efficiency_rating: "80 Plus Gold", // Changed to underscore
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Suitable for most high-performance gaming PCs, especially with RTX 30-series/40-series or RX 6000/7000 series GPUs. Its modularity helps with cable management. Ensure your case has enough space for an ATX PSU."
@@ -11,7 +12,7 @@ const psuDatabase = {
     "cooler master mwe white 750w": {
         name: "Cooler Master MWE White 750W",
         wattage: "750W",
-        efficiencyRating: "80 Plus White",
+        efficiency_rating: "80 Plus White",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Suitable for most mid-range gaming PCs with single-GPU setups. Its non-modular design means all cables are fixed, so ensure good cable management in your case. Verify it has sufficient PCIe power connectors for your chosen GPU."
@@ -19,7 +20,7 @@ const psuDatabase = {
     "corsair cx650": {
         name: "Corsair CX650",
         wattage: "650W",
-        efficiencyRating: "80 Plus Bronze",
+        efficiency_rating: "80 Plus Bronze",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Sufficient for many builds using CPUs like Ryzen 5/Intel i5 and GPUs like RTX 3050/3060 or RX 6600/6700. Like other non-modular PSUs, plan for cable management. Ensure required PCIe power connectors for your GPU."
@@ -27,7 +28,7 @@ const psuDatabase = {
     "cougar gx-f 750w": {
         name: "Cougar GX-F 750W",
         wattage: "750W",
-        efficiencyRating: "80 Plus Gold",
+        efficiency_rating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "A good choice for mid to high-end systems. Its fully modular design simplifies cable management, reducing clutter in your PC build. Ensure it has enough PCIe connectors for your GPU."
@@ -35,7 +36,7 @@ const psuDatabase = {
     "seasonic focus plus gold 550w": {
         name: "Seasonic Focus Plus Gold 550W",
         wattage: "550W",
-        efficiencyRating: "80 Plus Gold",
+        efficiency_rating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Ideal for entry-level to mid-range builds with less power-hungry GPUs (e.g., RTX 3050/3060, RX 6600). Its fully modular design is great for clean builds. Always check your GPU's minimum recommended PSU wattage."
@@ -77,41 +78,118 @@ const psuModelMap = {
 
 /**
  * Handles Dialogflow intents related to PSU (Power Supply Unit) information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - Dialogflow extracted parameters.
+ * @param {Array} inputContexts - Active contexts from Dialogflow.
+ * @param {string} projectId - Google Cloud Project ID.
+ * @param {string} sessionId - Dialogflow session ID.
+ * @returns {object} An object with `fulfillmentText` and `outputContexts`.
  */
-function handlePSUIntent(intent, parameters) {
-    console.log('  [PSU Handler] Called for intent:', intent);
-    console.log('  [PSU Handler] Received parameters:', parameters);
+function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
+    let psuModelRaw = parameters["psu-model"]; // Assuming Dialogflow parameter for PSU model
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'psu_model' (with an underscore)
-    const psuModelRaw = parameters["psu-model"];
-
-    if (!psuModelRaw) {
-        console.warn('  [PSU Handler] WARNING: "psu_model" parameter is missing in the request.');
-        return 'Please specify the Power Supply Unit model you are interested in (e.g., "Corsair RM850x").';
+    // Assuming Dialogflow parameter for detail type is 'psu-detail-type'
+    let requestedDetail = parameters["psu-detail-type"];
+    if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
+        requestedDetail = requestedDetail[0];
+    }
+    if (typeof requestedDetail === 'string') {
+        requestedDetail = requestedDetail.toLowerCase().replace(/[\s-]/g, '_');
     }
 
-    const modelKey = psuModelMap[psuModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [PSU Handler] WARNING: No matching model key found in psuModelMap for "${psuModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the PSU model "${psuModelRaw}".`;
+    let modelKey;
+    if (psuModelRaw) {
+        if (Array.isArray(psuModelRaw) && psuModelRaw.length > 0) {
+            psuModelRaw = psuModelRaw[0];
+        }
+        const lowerCaseRaw = String(psuModelRaw).toLowerCase().trim();
+        modelKey = psuModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
+
+    // Check 'psu_details_context' for follow-up questions
+    if (!modelKey && inputContexts && inputContexts.length > 0) {
+        const psuContext = inputContexts.find(context => context.name.endsWith('/contexts/psu_details_context'));
+        if (psuContext && psuContext.parameters && psuContext.parameters['psu-model']) {
+            let contextPsuModelRaw = psuContext.parameters['psu-model'];
+            if (Array.isArray(contextPsuModelRaw) && contextPsuModelRaw.length > 0) {
+                contextPsuModelRaw = contextPsuModelRaw[0];
+            }
+            const lowerCaseContextRaw = String(contextPsuModelRaw).toLowerCase().trim();
+            modelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!psuModelRaw) {
+                psuModelRaw = contextPsuModelRaw;
+            }
+        }
+    }
+
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that PSU model.';
+    let outputContexts = [];
 
     const psu = psuDatabase[modelKey];
-    if (!psu) {
-        console.error(`  [PSU Handler] ERROR: No PSU data found in psuDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${psuModelRaw}". The data might be missing or incorrect.`;
+
+    // --- DEBUGGING LOGS ---
+    console.log('--- handlePSUIntent Debug ---');
+    console.log('Parameters received from Dialogflow:', parameters);
+    console.log('psuModelRaw (processed):', psuModelRaw);
+    console.log('requestedDetail (processed):', requestedDetail);
+    console.log('modelKey (used for database lookup):', modelKey);
+    console.log('PSU object found in database:', psu);
+    if (psu && requestedDetail) {
+        console.log(`Value for psu[${requestedDetail}]:`, psu[requestedDetail]);
+    }
+    console.log('--- End Debug ---');
+    // --- END DEBUGGING LOGS ---
+
+    if (psu) {
+        if (requestedDetail && psu[requestedDetail]) {
+            // Specific attribute response
+            switch (requestedDetail) {
+                case "name":
+                    fulfillmentText = `The name of the PSU is ${psu.name}.`;
+                    break;
+                case "wattage":
+                    fulfillmentText = `The ${psu.name} has a wattage of ${psu.wattage}.`;
+                    break;
+                case "efficiency_rating":
+                    fulfillmentText = `The ${psu.name} has an efficiency rating of ${psu.efficiency_rating}.`;
+                    break;
+                case "modularity":
+                    fulfillmentText = `The ${psu.name} is a ${psu.modularity} power supply.`;
+                    break;
+                case "cables":
+                    fulfillmentText = `The ${psu.name} typically includes cables for ${psu.cables}.`;
+                    break;
+                case "compatibility":
+                    fulfillmentText = `Regarding compatibility for ${psu.name}: ${psu.compatibility}`;
+                    break;
+                default:
+                    fulfillmentText = `For ${psu.name}, the ${requestedDetail.replace(/_/g, ' ')} is: ${psu[requestedDetail]}.`;
+                    break;
+            }
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail.replace(/_/g, ' ')} for ${psu.name}.`;
+        } else {
+            // General details
+            let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiency_rating} certified, ${psu.modularity} power supply. `;
+            response += `It typically includes cables for ${psu.cables}. `;
+            response += `Compatibility: ${psu.compatibility}`;
+            fulfillmentText = response;
+        }
+
+        // Set 'psu_details_context'
+        if (psuModelRaw) {
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/psu_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'psu-model': psuModelRaw
+                }
+            });
+        }
+    } else {
+        fulfillmentText = `Sorry, I couldn't find details for "${psuModelRaw || 'that PSU model'}". Please ensure the name is correct or try another model.`;
     }
 
-    // Construct the detailed response
-    let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
-    response += `It typically includes cables for ${psu.cables}. `;
-    response += `Compatibility: ${psu.compatibility}`;
-
-    console.log('  [PSU Handler] Generated response:', response);
-    return response;
+    return { fulfillmentText, outputContexts };
 }
 
-module.exports = { handlePSUIntent };
+module.exports = { psuDatabase, psuModelMap, handlePSUIntent };
