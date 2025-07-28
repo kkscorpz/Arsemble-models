@@ -1,3 +1,4 @@
+// storage-model.js
 // Storage database (HDD and SSD)
 const storageDatabase = {
     "seagate barracuda 1tb": {
@@ -5,7 +6,7 @@ const storageDatabase = {
         type: "HDD",
         capacity: "1TB",
         interface: "SATA 6Gb/s",
-        formFactor: "3.5-inch",
+        form_factor: "3.5-inch", // Changed to underscore
         rpm: "7200 RPM",
         compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. It's a good choice for bulk storage."
     },
@@ -14,7 +15,7 @@ const storageDatabase = {
         type: "HDD",
         capacity: "2TB",
         interface: "SATA 6Gb/s",
-        formFactor: "3.5-inch",
+        form_factor: "3.5-inch",
         rpm: "5400/7200 RPM (typically 5400 for Blue)", // Reflecting common WD Blue variations
         compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. Excellent for larger storage needs."
     },
@@ -23,9 +24,9 @@ const storageDatabase = {
         type: "NVMe SSD",
         capacity: "1TB",
         interface: "PCIe Gen 3.0 x4",
-        formFactor: "M.2 2280",
-        readSpeed: "~3500MB/s",
-        writeSpeed: "~3300MB/s",
+        form_factor: "M.2 2280",
+        read_speed: "~3500MB/s", // Changed to underscore
+        write_speed: "~3300MB/s", // Changed to underscore
         compatibility: "Requires a motherboard with an available M.2 slot supporting PCIe Gen 3.0 x4 NVMe SSDs. Check if your motherboard shares M.2 bandwidth with SATA ports."
     },
     "crucial mx500 500gb": {
@@ -33,9 +34,9 @@ const storageDatabase = {
         type: "SATA SSD",
         capacity: "500GB",
         interface: "SATA 6Gb/s",
-        formFactor: "2.5-inch",
-        readSpeed: "~560MB/s",
-        writeSpeed: "~510MB/s",
+        form_factor: "2.5-inch",
+        read_speed: "~560MB/s",
+        write_speed: "~510MB/s",
         compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 2.5-inch drive bay. It's a reliable and cost-effective option for a fast boot drive or general storage."
     }
 };
@@ -69,47 +70,144 @@ const storageModelMap = {
 
 /**
  * Handles Dialogflow intents related to Storage (HDD/SSD) information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - Dialogflow extracted parameters.
+ * @param {Array} inputContexts - Active contexts from Dialogflow.
+ * @param {string} projectId - Google Cloud Project ID.
+ * @param {string} sessionId - Dialogflow session ID.
+ * @returns {object} An object with `fulfillmentText` and `outputContexts`.
  */
-function handleStorageIntent(intent, parameters) {
-    console.log('  [Storage Handler] Called for intent:', intent);
-    console.log('  [Storage Handler] Received parameters:', parameters);
+function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
+    let storageModelRaw = parameters["storage-model"]; // Assuming Dialogflow parameter for storage model
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'storage_model' (with an underscore)
-    const storageModelRaw = parameters["storage-model"];
-
-    if (!storageModelRaw) {
-        console.warn('  [Storage Handler] WARNING: "storage_model" parameter is missing in the request.');
-        return 'Please specify the Storage device model you are interested in (e.g., "Seagate Barracuda 1TB").';
+    // Assuming Dialogflow parameter for detail type is 'storage-detail-type'
+    let requestedDetail = parameters["storage-detail-type"];
+    if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
+        requestedDetail = requestedDetail[0];
+    }
+    if (typeof requestedDetail === 'string') {
+        requestedDetail = requestedDetail.toLowerCase().replace(/[\s-]/g, '_');
     }
 
-    const modelKey = storageModelMap[storageModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [Storage Handler] WARNING: No matching model key found in storageModelMap for "${storageModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the Storage model "${storageModelRaw}".`;
+    let modelKey;
+    if (storageModelRaw) {
+        if (Array.isArray(storageModelRaw) && storageModelRaw.length > 0) {
+            storageModelRaw = storageModelRaw[0];
+        }
+        const lowerCaseRaw = String(storageModelRaw).toLowerCase().trim();
+        modelKey = storageModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
+
+    // Check 'storage_details_context' for follow-up questions
+    if (!modelKey && inputContexts && inputContexts.length > 0) {
+        const storageContext = inputContexts.find(context => context.name.endsWith('/contexts/storage_details_context'));
+        if (storageContext && storageContext.parameters && storageContext.parameters['storage-model']) {
+            let contextStorageModelRaw = storageContext.parameters['storage-model'];
+            if (Array.isArray(contextStorageModelRaw) && contextStorageModelRaw.length > 0) {
+                contextStorageModelRaw = contextStorageModelRaw[0];
+            }
+            const lowerCaseContextRaw = String(contextStorageModelRaw).toLowerCase().trim();
+            modelKey = storageModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!storageModelRaw) {
+                storageModelRaw = contextStorageModelRaw;
+            }
+        }
+    }
+
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that storage model.';
+    let outputContexts = [];
 
     const storage = storageDatabase[modelKey];
-    if (!storage) {
-        console.error(`  [Storage Handler] ERROR: No Storage data found in storageDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${storageModelRaw}". The data might be missing or incorrect.`;
+
+    // --- DEBUGGING LOGS ---
+    console.log('--- handleStorageIntent Debug ---');
+    console.log('Parameters received from Dialogflow:', parameters);
+    console.log('storageModelRaw (processed):', storageModelRaw);
+    console.log('requestedDetail (processed):', requestedDetail);
+    console.log('modelKey (used for database lookup):', modelKey);
+    console.log('Storage object found in database:', storage);
+    if (storage && requestedDetail) {
+        console.log(`Value for storage[${requestedDetail}]:`, storage[requestedDetail]);
+    }
+    console.log('--- End Debug ---');
+    // --- END DEBUGGING LOGS ---
+
+    if (storage) {
+        if (requestedDetail && storage[requestedDetail]) {
+            // Specific attribute response
+            switch (requestedDetail) {
+                case "name":
+                    fulfillmentText = `The name of the storage device is ${storage.name}.`;
+                    break;
+                case "type":
+                    fulfillmentText = `The ${storage.name} is a ${storage.type}.`;
+                    break;
+                case "capacity":
+                    fulfillmentText = `The ${storage.name} has a capacity of ${storage.capacity}.`;
+                    break;
+                case "interface":
+                    fulfillmentText = `The ${storage.name} uses a ${storage.interface} interface.`;
+                    break;
+                case "form_factor":
+                    fulfillmentText = `The form factor of the ${storage.name} is ${storage.form_factor}.`;
+                    break;
+                case "rpm":
+                    if (storage.type === "HDD") {
+                        fulfillmentText = `The ${storage.name} spins at ${storage.rpm}.`;
+                    } else {
+                        fulfillmentText = `The ${storage.name} is an SSD and does not have an RPM.`;
+                    }
+                    break;
+                case "read_speed":
+                    if (storage.type.includes("SSD")) {
+                        fulfillmentText = `The ${storage.name} has a read speed of up to ${storage.read_speed}.`;
+                    } else {
+                        fulfillmentText = `The ${storage.name} is an HDD and typically doesn't specify read/write speeds in this manner.`;
+                    }
+                    break;
+                case "write_speed":
+                    if (storage.type.includes("SSD")) {
+                        fulfillmentText = `The ${storage.name} has a write speed of up to ${storage.write_speed}.`;
+                    } else {
+                        fulfillmentText = `The ${storage.name} is an HDD and typically doesn't specify read/write speeds in this manner.`;
+                    }
+                    break;
+                case "compatibility":
+                    fulfillmentText = `Regarding compatibility for ${storage.name}: ${storage.compatibility}`;
+                    break;
+                default:
+                    fulfillmentText = `For ${storage.name}, the ${requestedDetail.replace(/_/g, ' ')} is: ${storage[requestedDetail]}.`;
+                    break;
+            }
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail.replace(/_/g, ' ')} for ${storage.name}.`;
+        } else {
+            // General details
+            let response = `The ${storage.name} is a ${storage.form_factor} ${storage.type} with ${storage.capacity} capacity, using a ${storage.interface} interface. `;
+
+            if (storage.type === "HDD") {
+                response += `It spins at ${storage.rpm}. `;
+            } else if (storage.type.includes("SSD")) { // Covers NVMe SSD and SATA SSD
+                response += `It offers read speeds of up to ${storage.read_speed} and write speeds up to ${storage.write_speed}. `;
+            }
+            response += `Compatibility: ${storage.compatibility}`;
+            fulfillmentText = response;
+        }
+
+        // Set 'storage_details_context'
+        if (storageModelRaw) {
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/storage_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'storage-model': storageModelRaw
+                }
+            });
+        }
+    } else {
+        fulfillmentText = `Sorry, I couldn't find details for "${storageModelRaw || 'that storage model'}". Please ensure the name is correct or try another model.`;
     }
 
-    // Construct the detailed response based on the storage type (HDD vs. SSD)
-    let response = `The ${storage.name} is a ${storage.formFactor} ${storage.type} with ${storage.capacity} capacity, using a ${storage.interface} interface. `;
-
-    if (storage.type === "HDD") {
-        response += `It spins at ${storage.rpm}. `;
-    } else if (storage.type.includes("SSD")) { // Covers NVMe SSD and SATA SSD
-        response += `It offers read speeds of up to ${storage.readSpeed} and write speeds up to ${storage.writeSpeed}. `;
-    }
-
-    response += `Compatibility: ${storage.compatibility}`;
-
-    console.log('  [Storage Handler] Generated response:', response);
-    return response;
+    return { fulfillmentText, outputContexts };
 }
 
-module.exports = { handleStorageIntent };
+module.exports = { storageDatabase, storageModelMap, handleStorageIntent };
