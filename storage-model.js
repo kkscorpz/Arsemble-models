@@ -80,7 +80,7 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
     let storageModelRaw = parameters["storage-model"]; // Assuming Dialogflow parameter for storage model
 
     // Assuming Dialogflow parameter for detail type is 'storage-detail-type'
-    let requestedDetail = parameters["storage-detail-type"];
+    let requestedDetail = parameters["storage_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
