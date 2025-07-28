@@ -1,4 +1,6 @@
 // ram-model.js
+
+// Database of RAM components with their details
 const ramDatabase = {
     "kingston fury beast ddr4": {
         name: "Kingston FURY Beast DDR4",
@@ -42,6 +44,7 @@ const ramDatabase = {
     }
 };
 
+// Map common user input variations to standard database keys
 const ramModelMap = {
     "kingston fury beast ddr4": "kingston fury beast ddr4",
     "fury beast ddr4": "kingston fury beast ddr4",
@@ -57,23 +60,36 @@ const ramModelMap = {
     "hu40 8gb": "hkcmemory hu40 ddr4 (8gb)"
 };
 
+/**
+ * Handles Dialogflow intents for RAM information.
+ * Manages contexts for follow-up questions.
+ * @param {object} parameters - Dialogflow extracted parameters.
+ * @param {Array} inputContexts - Active contexts from Dialogflow.
+ * @param {string} projectId - Google Cloud Project ID.
+ * @param {string} sessionId - Dialogflow session ID.
+ * @returns {object} An object with `fulfillmentText` and `outputContexts`.
+ */
 function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     let ramModelRaw = parameters["ram-model"];
-    const requestedDetail = parameters.requested_detail;
+    const requestedDetail = parameters.requested_detail; // e.g., 'compatibility', 'speed'
 
     let ramModelKey;
+    // Prioritize ram-model from current intent parameters
     if (ramModelRaw) {
         const lowerCaseRaw = ramModelRaw.toLowerCase().trim();
         ramModelKey = ramModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
+    // If ram-model not in current parameters, check the 'ram_details_context'
     if (!ramModelKey && inputContexts && inputContexts.length > 0) {
         const ramContext = inputContexts.find(context => context.name.endsWith('/contexts/ram_details_context'));
         if (ramContext && ramContext.parameters && ramContext.parameters['ram-model']) {
             const contextRamModelRaw = ramContext.parameters['ram-model'];
             const lowerCaseContextRaw = contextRamModelRaw.toLowerCase().trim();
             ramModelKey = ramModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!ramModelRaw) { ramModelRaw = contextRamModelRaw; }
+            if (!ramModelRaw) { // Set ramModelRaw if it came from context for output context
+                ramModelRaw = contextRamModelRaw;
+            }
         }
     }
 
@@ -82,25 +98,31 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
 
     const ram = ramDatabase[ramModelKey];
 
-    if (ram) {
+    if (ram) { // RAM data found
         if (requestedDetail && ram[requestedDetail]) {
             fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${ram[requestedDetail]}.`;
         } else if (requestedDetail) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
         } else {
+            // General details if no specific detail was requested
             fulfillmentText = `The ${ram.name} RAM comes in ${ram.capacity} capacities, is a ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. Compatibility: ${ram.compatibility}`;
         }
 
-        if (ramModelRaw) {
+        // Set 'ram_details_context' to remember the current RAM model for follow-up questions
+        if (ramModelRaw) { // Only set context if a RAM model was identified
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/ram_details_context`,
-                lifespanCount: 5,
+                lifespanCount: 5, // Lifespan of the context
                 parameters: {
-                    'ram-model': ramModelRaw
+                    'ram-model': ramModelRaw // Store the identified RAM model
                 }
             });
         }
+    } else {
+        // Fallback if no RAM model was found or identified
+        fulfillmentText = `Sorry, I couldn't find details for "${ramModelRaw || 'that RAM model'}". Please ensure the name is correct or try another RAM model.`;
     }
+
     return { fulfillmentText, outputContexts };
 }
 
