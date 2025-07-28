@@ -218,7 +218,7 @@ function handleCPUIntent(parameters, inputContexts, projectId, sessionId) {
     let cpuModelRaw = parameters["cpu-model"]; // Assuming Dialogflow parameter for CPU model
 
     // Assuming Dialogflow parameter for detail type is 'cpu-detail-type'
-    let requestedDetail = parameters["cpu-detail-type"];
+    let requestedDetail = parameters["cpu_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
