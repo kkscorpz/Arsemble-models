@@ -88,8 +88,8 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     // --- IMPORTANT: Check for requestedDetail in contexts if not found in direct parameters ---
     if (!requestedDetail && inputContexts && inputContexts.length > 0) {
         for (const context of inputContexts) {
-            if (context.parameters && context.parameters['ram-detail-type']) {
-                let contextDetail = context.parameters['ram-detail-type'];
+            if (context.parameters && context.parameters['Ram-detail-type']) {
+                let contextDetail = context.parameters['Ram-detail-type'];
                 if (Array.isArray(contextDetail) && contextDetail.length > 0) {
                     contextDetail = contextDetail[0];
                 }
