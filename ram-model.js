@@ -137,7 +137,28 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
 
     if (ram) { // RAM data found
         if (requestedDetail && ram[requestedDetail]) {
-            fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${ram[requestedDetail]}.`;
+            // Updated to match "The ${ramModel} has a capacity of ${specificRam.capacity}." format
+            // Uses a switch for more flexible phrasing based on attribute
+            switch (requestedDetail) {
+                case "capacity":
+                    fulfillmentText = `The ${ram.name} has a capacity of ${ram.capacity}.`;
+                    break;
+                case "type":
+                    fulfillmentText = `The ${ram.name} is a ${ram.type} RAM module.`;
+                    break;
+                case "speed":
+                    fulfillmentText = `The ${ram.name} runs at ${ram.speed}.`;
+                    break;
+                case "voltage":
+                    fulfillmentText = `The ${ram.name} uses ${ram.voltage} of voltage.`;
+                    break;
+                case "compatibility":
+                    fulfillmentText = `Regarding compatibility for ${ram.name}: ${ram.compatibility}`;
+                    break;
+                default:
+                    fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${ram[requestedDetail]}.`;
+                    break;
+            }
         } else if (requestedDetail) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
         } else {
