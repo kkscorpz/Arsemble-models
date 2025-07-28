@@ -88,7 +88,7 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
     let psuModelRaw = parameters["psu-model"]; // Assuming Dialogflow parameter for PSU model
 
     // Assuming Dialogflow parameter for detail type is 'psu-detail-type'
-    let requestedDetail = parameters["psu-detail-type"];
+    let requestedDetail = parameters["psu_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
