@@ -64,7 +64,7 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
     let caseFanModelRaw = parameters["case-fan-model"];
 
     // Assuming Dialogflow parameter for detail type is 'case-fan-detail-type'
-    let requestedDetail = parameters["case-fan-detail-type"]; 
+    let requestedDetail = parameters["case_fan_detail_type"]; 
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
