@@ -71,12 +71,25 @@ const ramModelMap = {
  */
 function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     let ramModelRaw = parameters["ram-model"];
-    const requestedDetail = parameters.requested_detail; // e.g., 'compatibility', 'speed'
+
+    // Handle requested_detail parameter, which can sometimes come as an array
+    let requestedDetail = parameters.requested_detail;
+    if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
+        requestedDetail = requestedDetail[0]; // Take the first element if it's an array
+    }
+    // Convert to lowercase to match database keys
+    if (typeof requestedDetail === 'string') {
+        requestedDetail = requestedDetail.toLowerCase();
+    }
 
     let ramModelKey;
     // Prioritize ram-model from current intent parameters
     if (ramModelRaw) {
-        const lowerCaseRaw = ramModelRaw.toLowerCase().trim();
+        // Ensure ramModelRaw is a string if it comes as an array, then convert to lowercase
+        if (Array.isArray(ramModelRaw) && ramModelRaw.length > 0) {
+            ramModelRaw = ramModelRaw[0];
+        }
+        const lowerCaseRaw = String(ramModelRaw).toLowerCase().trim(); // Ensure string conversion
         ramModelKey = ramModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
@@ -84,8 +97,12 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     if (!ramModelKey && inputContexts && inputContexts.length > 0) {
         const ramContext = inputContexts.find(context => context.name.endsWith('/contexts/ram_details_context'));
         if (ramContext && ramContext.parameters && ramContext.parameters['ram-model']) {
-            const contextRamModelRaw = ramContext.parameters['ram-model'];
-            const lowerCaseContextRaw = contextRamModelRaw.toLowerCase().trim();
+            let contextRamModelRaw = ramContext.parameters['ram-model'];
+            // Ensure contextRamModelRaw is a string if it comes as an array
+            if (Array.isArray(contextRamModelRaw) && contextRamModelRaw.length > 0) {
+                contextRamModelRaw = contextRamModelRaw[0];
+            }
+            const lowerCaseContextRaw = String(contextRamModelRaw).toLowerCase().trim();
             ramModelKey = ramModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!ramModelRaw) { // Set ramModelRaw if it came from context for output context
                 ramModelRaw = contextRamModelRaw;
@@ -96,7 +113,24 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     let fulfillmentText = 'Sorry, I couldn\'t find details for that RAM model.';
     let outputContexts = [];
 
+    // Ensure the ramModelKey is consistently used for lookup
     const ram = ramDatabase[ramModelKey];
+
+    // --- DEBUGGING LOGS (keep these for testing, they are very helpful!) ---
+    console.log('--- handleRAMIntent Debug ---');
+    console.log('Parameters received from Dialogflow:', parameters);
+    console.log('ramModelRaw (initial):', parameters["ram-model"]);
+    console.log('requestedDetail (initial):', parameters.requested_detail);
+    console.log('ramModelRaw (processed):', ramModelRaw);
+    console.log('requestedDetail (processed):', requestedDetail);
+    console.log('ramModelKey (used for database lookup):', ramModelKey);
+    console.log('ram object found in database:', ram);
+    if (ram) {
+        console.log(`Value for ram[${requestedDetail}]:`, ram[requestedDetail]);
+    }
+    console.log('--- End Debug ---');
+    // --- END DEBUGGING LOGS ---
+
 
     if (ram) { // RAM data found
         if (requestedDetail && ram[requestedDetail]) {
@@ -109,12 +143,13 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
         }
 
         // Set 'ram_details_context' to remember the current RAM model for follow-up questions
-        if (ramModelRaw) { // Only set context if a RAM model was identified
+        // Only set context if a RAM model was identified successfully
+        if (ramModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/ram_details_context`,
                 lifespanCount: 5, // Lifespan of the context
                 parameters: {
-                    'ram-model': ramModelRaw // Store the identified RAM model
+                    'ram-model': ramModelRaw // Store the identified RAM model (original format)
                 }
             });
         }
