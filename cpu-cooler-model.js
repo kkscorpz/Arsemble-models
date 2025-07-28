@@ -74,7 +74,7 @@ function handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId) 
     let coolerModelRaw = parameters["cooler-model"]; // Assuming Dialogflow parameter for cooler model
 
     // Assuming Dialogflow parameter for detail type is 'cpu-cooler-detail-type'
-    let requestedDetail = parameters["cpu-cooler-detail-type"];
+    let requestedDetail = parameters["cpu_cooler_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
