@@ -34,7 +34,7 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
     let gpuModelRaw = parameters["gpu-model"]; // Assuming Dialogflow parameter for GPU model
 
     // Assuming Dialogflow parameter for detail type is 'gpu-detail-type'
-    let requestedDetail = parameters["gpu-detail-type"];
+    let requestedDetail = parameters["gpu_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
