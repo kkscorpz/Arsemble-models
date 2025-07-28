@@ -74,29 +74,42 @@ const ramModelMap = {
  */
 function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     let ramModelRaw = parameters["ram-model"];
+    let requestedDetail = parameters["ram-detail-type"]; // Primary check from direct parameters
 
-    // ***************************************************************
-    // IMPORTANT CHANGE HERE:
-    // Now looking for 'ram-detail-type' as confirmed by your Dialogflow JSON
-    let requestedDetail = parameters["ram-detail-type"];
-    // ***************************************************************
-
+    // Check if requestedDetail is an array and take the first element
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
-        requestedDetail = requestedDetail[0]; // Take the first element if it's an array
+        requestedDetail = requestedDetail[0];
     }
-    // Convert to lowercase to match database keys
+    // Convert to lowercase for consistency with database keys
     if (typeof requestedDetail === 'string') {
         requestedDetail = requestedDetail.toLowerCase();
     }
 
+    // --- IMPORTANT: Check for requestedDetail in contexts if not found in direct parameters ---
+    if (!requestedDetail && inputContexts && inputContexts.length > 0) {
+        for (const context of inputContexts) {
+            if (context.parameters && context.parameters['ram-detail-type']) {
+                let contextDetail = context.parameters['ram-detail-type'];
+                if (Array.isArray(contextDetail) && contextDetail.length > 0) {
+                    contextDetail = contextDetail[0];
+                }
+                if (typeof contextDetail === 'string') {
+                    requestedDetail = contextDetail.toLowerCase();
+                    break; // Found in context, stop checking
+                }
+            }
+        }
+    }
+    // --- END IMPORTANT CHANGE ---
+
+
     let ramModelKey;
     // Prioritize ram-model from current intent parameters
     if (ramModelRaw) {
-        // Ensure ramModelRaw is a string if it comes as an array, then convert to lowercase
         if (Array.isArray(ramModelRaw) && ramModelRaw.length > 0) {
             ramModelRaw = ramModelRaw[0];
         }
-        const lowerCaseRaw = String(ramModelRaw).toLowerCase().trim(); // Ensure string conversion
+        const lowerCaseRaw = String(ramModelRaw).toLowerCase().trim();
         ramModelKey = ramModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
@@ -105,13 +118,12 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
         const ramContext = inputContexts.find(context => context.name.endsWith('/contexts/ram_details_context'));
         if (ramContext && ramContext.parameters && ramContext.parameters['ram-model']) {
             let contextRamModelRaw = ramContext.parameters['ram-model'];
-            // Ensure contextRamModelRaw is a string if it comes as an array
             if (Array.isArray(contextRamModelRaw) && contextRamModelRaw.length > 0) {
                 contextRamModelRaw = contextRamModelRaw[0];
             }
             const lowerCaseContextRaw = String(contextRamModelRaw).toLowerCase().trim();
             ramModelKey = ramModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!ramModelRaw) { // Set ramModelRaw if it came from context for output context
+            if (!ramModelRaw) {
                 ramModelRaw = contextRamModelRaw;
             }
         }
@@ -120,19 +132,18 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
     let fulfillmentText = 'Sorry, I couldn\'t find details for that RAM model.';
     let outputContexts = [];
 
-    // Ensure the ramModelKey is consistently used for lookup
     const ram = ramDatabase[ramModelKey];
 
-    // --- DEBUGGING LOGS (keep these for testing, they are very helpful!) ---
+    // --- DEBUGGING LOGS (KEEP THESE!) ---
     console.log('--- handleRAMIntent Debug ---');
     console.log('Parameters received from Dialogflow:', parameters);
-    console.log('ramModelRaw (initial):', parameters["ram-model"]);
-    console.log('requestedDetail (initial):', parameters["ram-detail-type"]); // Updated debug log
-    console.log('ramModelRaw (processed):', ramModelRaw);
-    console.log('requestedDetail (processed):', requestedDetail);
+    console.log('inputContexts received from Dialogflow:', inputContexts); // Added context log
+    console.log('ramModelRaw (initial from params):', parameters["ram-model"]);
+    console.log('requestedDetail (initial from params):', parameters["ram-detail-type"]);
+    console.log('requestedDetail (after context check):', requestedDetail); // Crucial for debugging
     console.log('ramModelKey (used for database lookup):', ramModelKey);
     console.log('ram object found in database:', ram);
-    if (ram) {
+    if (ram && requestedDetail) {
         console.log(`Value for ram[${requestedDetail}]:`, ram[requestedDetail]);
     }
     console.log('--- End Debug ---');
@@ -140,8 +151,7 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
 
 
     if (ram) { // RAM data found
-        if (requestedDetail && ram[requestedDetail]) {
-            // Updated to match "The ${ramModel} has a capacity of ${specificRam.capacity}." format
+        if (requestedDetail && ram.hasOwnProperty(requestedDetail)) { // Use hasOwnProperty for safer access
             // Uses a switch for more flexible phrasing based on attribute
             switch (requestedDetail) {
                 case "capacity":
@@ -160,24 +170,25 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
                     fulfillmentText = `Regarding compatibility for ${ram.name}: ${ram.compatibility}`;
                     break;
                 default:
-                    fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${ram[requestedDetail]}.`;
+                    // Fallback for any other specific detail not explicitly handled above
+                    fulfillmentText = `For ${ram.name}, the ${requestedDetail.replace(/_/g, ' ')} is: ${ram[requestedDetail]}.`;
                     break;
             }
         } else if (requestedDetail) {
-            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
+            // This means requestedDetail was present but not found as a property in the ram object
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail.replace(/_/g, ' ')} for ${ram.name}.`;
         } else {
-            // General details if no specific detail was requested
+            // General details if no specific detail was requested (requestedDetail is undefined/null)
             fulfillmentText = `The ${ram.name} RAM comes in ${ram.capacity} capacities, is a ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. Compatibility: ${ram.compatibility}`;
         }
 
         // Set 'ram_details_context' to remember the current RAM model for follow-up questions
-        // Only set context if a RAM model was identified successfully
         if (ramModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/ram_details_context`,
                 lifespanCount: 5, // Lifespan of the context
                 parameters: {
-                    'ram-model': ramModelRaw // Store the identified RAM model (original format)
+                    'ram-model': ram.name // Store the identified RAM model's full name
                 }
             });
         }
