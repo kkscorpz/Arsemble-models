@@ -126,7 +126,7 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
     let mbModelRaw = parameters["motherboard-model"]; // Assuming Dialogflow parameter for motherboard model
 
     // Assuming Dialogflow parameter for detail type is 'motherboard-detail-type'
-    let requestedDetail = parameters["motherboard-detail-type"];
+    let requestedDetail = parameters["motherboard_detail_type"];
     if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
         requestedDetail = requestedDetail[0];
     }
