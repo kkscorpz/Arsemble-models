@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 3000; // Use environment variable PORT or defau
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
 const { handleMotherboardIntent } = require('./motherboard-model');
-const { handleGPUIntent } = require('./gpu-model');
-const { handleCaseFanIntent } = require('./case-fan-model'); // Now imported for the specific handler
+const { handleGPUIntent } = require('./gpu-model'); // Updated import
+const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
 const { handleStorageIntent } = require('./storage-model');
 const { handlePSUIntent } = require('./psu-model');
@@ -63,17 +63,21 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     }
     // 3. Handle the generic Case Fan Intent
-    // Make sure 'Get_Case_Fan_Details' is the exact name of your generic Case Fan intent in Dialogflow.
     else if (intentDisplayName === 'Get_Case_Fan_Details') {
         const caseFanHandlerResult = handleCaseFanIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = caseFanHandlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = caseFanHandlerResult.outputContexts; // Pass contexts back
+        fulfillmentResponse.outputContexts = caseFanHandlerResult.outputContexts;
     }
-    // 4. Handle other component intents (still using specific lists for now)
+    // 4. Handle the generic GPU Intent (THIS IS THE CORRECTED PART)
+    // Make sure 'Get_GPU_Details' is the exact name of your generic GPU intent in Dialogflow.
+    else if (intentDisplayName === 'Get_GPU_Details') {
+        const gpuHandlerResult = handleGPUIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = gpuHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = gpuHandlerResult.outputContexts; // Pass contexts back
+    }
+    // 5. Handle other component intents (still using specific lists for now)
     else if (motherboardIntents.includes(intentDisplayName)) {
         fulfillmentResponse.fulfillmentText = handleMotherboardIntent(intentDisplayName, parameters);
-    } else if (gpuIntents.includes(intentDisplayName)) {
-        fulfillmentResponse.fulfillmentText = handleGPUIntent(intentDisplayName, parameters);
     } else if (cpuCoolerIntents.includes(intentDisplayName)) {
         fulfillmentResponse.fulfillmentText = handleCPUCoolerIntent(intentDisplayName, parameters);
     } else if (storageIntents.includes(intentDisplayName)) {
@@ -98,7 +102,7 @@ app.listen(PORT, () => {
 });
 
 // --- Arrays for Other Component Intents ---
-// REMOVED caseFanIntents array as it's now handled by a single generic intent
+// REMOVED gpuIntents array as it's now handled by a single generic intent
 const motherboardIntents = [
     "Get_Motherboard_ASUS_PRIME_B550M-K_Details", "Get_Motherboard_MSI_B450M_A_Pro_Max_II_Details",
     "Get_Motherboard_MSI_Pro_H610M_S_DDR4_Details", "Get_Motherboard_RAMSTA_RS-B450MP_Details",
@@ -107,7 +111,6 @@ const motherboardIntents = [
     "Get_Motherboard_GIGABYTE_H610M_K_DDR4_Details"
 ];
 
-const gpuIntents = ["Get_GPU_Gigabyte_RTX_3050_EAGLE_OC_Details"];
 const cpuCoolerIntents = ["Get_CPU_Cooler_COOLMOON_AOSOR_S400_Details", "Get_CPU_Cooler_Cooler_Master_Hyper_212_Black_Edition_Details", "Get_CPU_Cooler_Thermalright_Peerless_Assassin_120_SE_Details", "Get_CPU_Cooler_Deepcool_LE500_MARRS_Details"];
 const storageIntents = ["Get_Storage_Seagate_Barracuda_1TB_Details", "Get_Storage_Western_Digital_Blue_2TB_Details", "Get_Storage_Samsung_970_EVO_Plus_1TB_Details", "Get_Storage_Crucial_MX500_500GB_Details"];
 const psuIntents = ["Get_PSU_Corsair_RM850x_Details", "Get_PSU_Cooler_Master_MWE_White_750W_Details", "Get_PSU_Corsair_CX650_Details", "Get_PSU_Cougar_GX-F_750W_Details", "Get_PSU_Seasonic_Focus_Plus_Gold_550W_Details"];
