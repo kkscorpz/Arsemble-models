@@ -1,4 +1,7 @@
-// CPU database
+// cpu-model.js
+
+// This database holds the actual specifications for each CPU.
+// Keys here MUST be all lowercase to match the normalized input from Dialogflow.
 const cpuDatabase = {
     "intel core i9-14900k": {
         name: "Intel Core i9-14900K",
@@ -130,119 +133,94 @@ const cpuDatabase = {
     }
 };
 
-// CPU Model Variants (mapping user inputs to database keys)
-// Ensure these keys exactly match the keys in cpuDatabase
+// This map helps convert various user inputs (synonyms) into the standard keys
+// used in cpuDatabase. All keys here should be lowercase.
+// Ensure this list is in sync with your Dialogflow @CPU-model entity's synonyms.
 const cpuModelMap = {
-    "intel core i9-14900k": "intel core i9-14900k",
-    "core i9-14900k": "intel core i9-14900k",
-    "i9-14900k": "intel core i9-14900k",
-    "intel i9-14900k": "intel core i9-14900k",
+    // Intel CPUs
+    "intel core i9-14900k": "intel core i9-14900k", "core i9-14900k": "intel core i9-14900k", "i9-14900k": "intel core i9-14900k", "intel i9-14900k": "intel core i9-14900k", "14900k": "intel core i9-14900k", "intel core i9 14900k": "intel core i9-14900k", "core i9 14900k": "intel core i9-14900k", "i9 14900k": "intel core i9-14900k",
 
-    "intel core i7-14700k": "intel core i7-14700k",
-    "core i7-14700k": "intel core i7-14700k",
-    "i7-14700k": "intel core i7-14700k",
-    "intel i7-14700k": "intel core i7-14700k",
+    "intel core i7-14700k": "intel core i7-14700k", "core i7-14700k": "intel core i7-14700k", "i7-14700k": "intel core i7-14700k", "intel i7-14700k": "intel core i7-14700k", "14700k": "intel core i7-14700k", "intel core i7 14700k": "intel core i7-14700k", "core i7 14700k": "intel core i7-14700k", "i7 14700k": "intel core i7-14700k",
 
-    "intel core i7-13700k": "intel core i7-13700k",
-    "core i7-13700k": "intel core i7-13700k",
-    "i7-13700k": "intel core i7-13700k",
-    "intel i7-13700k": "intel core i7-13700k",
+    "intel core i7-13700k": "intel core i7-13700k", "core i7-13700k": "intel core i7-13700k", "i7-13700k": "intel core i7-13700k", "intel i7-13700k": "intel core i7-13700k", "13700k": "intel core i7-13700k", "intel core i7 13700k": "intel core i7-13700k", "core i7 13700k": "intel core i7-13700k", "i7 13700k": "intel core i7-13700k",
 
-    "intel core i5-14600k": "intel core i5-14600k",
-    "core i5-14600k": "intel core i5-14600k",
-    "i5-14600k": "intel core i5-14600k",
-    "intel i5-14600k": "intel core i5-14600k",
+    "intel core i5-14600k": "intel core i5-14600k", "core i5-14600k": "intel core i5-14600k", "i5-14600k": "intel core i5-14600k", "intel i5-14600k": "intel core i5-14600k", "14600k": "intel core i5-14600k", "intel core i5 14600k": "intel core i5-14600k", "core i5 14600k": "intel core i5-14600k", "i5 14600k": "intel core i5-14600k",
 
-    "intel core i5-14500": "intel core i5-14500",
-    "core i5-14500": "intel core i5-14500",
-    "i5-14500": "intel core i5-14500",
-    "intel i5-14500": "intel core i5-14500",
+    "intel core i5-14500": "intel core i5-14500", "core i5-14500": "intel core i5-14500", "i5-14500": "intel core i5-14500", "intel i5-14500": "intel core i5-14500", "14500": "intel core i5-14500", "intel core i5 14500": "intel core i5-14500", "core i5 14500": "intel core i5-14500", "i5 14500": "intel core i5-14500",
 
-    "intel core i5-13400": "intel core i5-13400",
-    "core i5-13400": "intel core i5-13400",
-    "i5-13400": "intel core i5-13400",
-    "intel i5-13400": "intel core i5-13400",
+    "intel core i5-13400": "intel core i5-13400", "core i5-13400": "intel core i5-13400", "i5-13400": "intel core i5-13400", "intel i5-13400": "intel core i5-13400", "13400": "intel core i5-13400", "intel core i5 13400": "intel core i5-13400", "core i5 13400": "intel core i5-13400", "i5 13400": "intel core i5-13400",
 
-    "intel core i3-14100": "intel core i3-14100",
-    "core i3-14100": "intel core i3-14100",
-    "i3-14100": "intel core i3-14100",
-    "intel i3-14100": "intel core i3-14100",
+    "intel core i3-14100": "intel core i3-14100", "core i3-14100": "intel core i3-14100", "i3-14100": "intel core i3-14100", "intel i3-14100": "intel core i3-14100", "14100": "intel core i3-14100", "intel core i3 14100": "intel core i3-14100", "core i3 14100": "intel core i3-14100", "i3 14100": "intel core i3-14100",
 
-    "intel core i3-13100": "intel core i3-13100",
-    "core i3-13100": "intel core i3-13100",
-    "i3-13100": "intel core i3-13100",
-    "intel i3-13100": "intel core i3-13100",
+    "intel core i3-13100": "intel core i3-13100", "core i3-13100": "intel core i3-13100", "i3-13100": "intel core i3-13100", "intel i3-13100": "intel core i3-13100", "13100": "intel core i3-13100", "intel core i3 13100": "intel core i3-13100", "core i3 13100": "intel core i3-13100", "i3 13100": "intel core i3-13100",
 
-    "amd ryzen 9 7950x": "amd ryzen 9 7950x",
-    "ryzen 9 7950x": "amd ryzen 9 7950x",
-    "7950x": "amd ryzen 9 7950x",
+    // AMD CPUs
+    "amd ryzen 9 7950x": "amd ryzen 9 7950x", "ryzen 9 7950x": "amd ryzen 9 7950x", "7950x": "amd ryzen 9 7950x", "amd 7950x": "amd ryzen 9 7950x", "ryzen9 7950x": "amd ryzen 9 7950x", "ryzen 9 7950 x": "amd ryzen 9 7950x",
 
-    "amd ryzen 9 9900x": "amd ryzen 9 9900x",
-    "ryzen 9 9900x": "amd ryzen 9 9900x",
-    "9900x": "amd ryzen 9 9900x",
+    "amd ryzen 9 9900x": "amd ryzen 9 9900x", "ryzen 9 9900x": "amd ryzen 9 9900x", "9900x": "amd ryzen 9 9900x", "amd 9900x": "amd ryzen 9 9900x", "ryzen9 9900x": "amd ryzen 9 9900x", "ryzen 9 9900 x": "amd ryzen 9 9900x",
 
-    "amd ryzen 9 9900x3d": "amd ryzen 9 9900x3d",
-    "ryzen 9 9900x3d": "amd ryzen 9 9900x3d",
-    "9900x3d": "amd ryzen 9 9900x3d",
+    "amd ryzen 9 9900x3d": "amd ryzen 9 9900x3d", "ryzen 9 9900x3d": "amd ryzen 9 9900x3d", "9900x3d": "amd ryzen 9 9900x3d", "amd 9900x3d": "amd ryzen 9 9900x3d", "ryzen9 9900x3d": "amd ryzen 9 9900x3d", "ryzen 9 9900 x3d": "amd ryzen 9 9900x3d",
 
-    "amd ryzen 7 7700x": "amd ryzen 7 7700x",
-    "ryzen 7 7700x": "amd ryzen 7 7700x",
-    "7700x": "amd ryzen 7 7700x",
+    "amd ryzen 7 7700x": "amd ryzen 7 7700x", "ryzen 7 7700x": "amd ryzen 7 7700x", "7700x": "amd ryzen 7 7700x", "amd 7700x": "amd ryzen 7 7700x", "ryzen7 7700x": "amd ryzen 7 7700x", "ryzen 7 7700 x": "amd ryzen 7 7700x",
 
-    "amd ryzen 7 5700x": "amd ryzen 7 5700x",
-    "ryzen 7 5700x": "amd ryzen 7 5700x",
-    "5700x": "amd ryzen 7 5700x",
+    "amd ryzen 7 5700x": "amd ryzen 7 5700x", "ryzen 7 5700x": "amd ryzen 7 5700x", "5700x": "amd ryzen 7 5700x", "amd 5700x": "amd ryzen 7 5700x", "ryzen7 5700x": "amd ryzen 7 5700x", "ryzen 7 5700 x": "amd ryzen 7 5700x",
 
-    "amd ryzen 5 5600x": "amd ryzen 5 5600x",
-    "ryzen 5 5600x": "amd ryzen 5 5600x",
-    "5600x": "amd ryzen 5 5600x",
+    "amd ryzen 5 5600x": "amd ryzen 5 5600x", "ryzen 5 5600x": "amd ryzen 5 5600x", "5600x": "amd ryzen 5 5600x", "amd 5600x": "amd ryzen 5 5600x", "ryzen5 5600x": "amd ryzen 5 5600x", "ryzen 5 5600 x": "amd ryzen 5 5600x",
 
-    "amd ryzen 5 5600g": "amd ryzen 5 5600g",
-    "ryzen 5 5600g": "amd ryzen 5 5600g",
-    "5600g": "amd ryzen 5 5600g",
+    "amd ryzen 5 5600g": "amd ryzen 5 5600g", "ryzen 5 5600g": "amd ryzen 5 5600g", "5600g": "amd ryzen 5 5600g", "amd 5600g": "amd ryzen 5 5600g", "ryzen5 5600g": "amd ryzen 5 5600g", "ryzen 5 5600 g": "amd ryzen 5 5600g",
 
-    "amd ryzen 3 3200g": "amd ryzen 3 3200g",
-    "ryzen 3 3200g": "amd ryzen 3 3200g",
-    "3200g": "amd ryzen 3 3200g",
+    "amd ryzen 3 3200g": "amd ryzen 3 3200g", "ryzen 3 3200g": "amd ryzen 3 3200g", "3200g": "amd ryzen 3 3200g", "amd 3200g": "amd ryzen 3 3200g", "ryzen3 3200g": "amd ryzen 3 3200g", "ryzen 3 3200 g": "amd ryzen 3 3200g",
 };
 
 /**
  * Handles Dialogflow intents related to CPU information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
+ * It extracts the CPU model parameter and retrieves its details from the cpuDatabase.
+ * @param {string} intent - The display name of the intent. (e.g., 'Get_CPU_Details')
+ * @param {object} parameters - The parameters extracted by Dialogflow, including the 'cpu-model'.
  * @returns {string} The fulfillment text response.
  */
 function handleCPUIntent(intent, parameters) {
-    console.log('  [CPU Handler] Called for intent:', intent);
-    console.log('  [CPU Handler] Received parameters:', parameters);
+    console.log('   [CPU Handler] Called for intent:', intent);
+    console.log('   [CPU Handler] Received parameters:', parameters);
 
-    // CRITICAL FIX: Access the parameter using the exact name Dialogflow sends (lowercase 'cpu-model')
-    const cpuModelRaw = parameters["CPU-model"];
+    // Get the raw CPU model value from Dialogflow's parameters.
+    // The parameter name MUST match what you set in Dialogflow (cpu-model, all lowercase).
+    const cpuModelRaw = parameters["cpu-model"];
 
     if (!cpuModelRaw) {
-        console.warn('  [CPU Handler] WARNING: "cpu-model" parameter is missing in the request.');
-        return 'Please specify the CPU model you are interested in (e.g., "Intel Core i5-14500").';
+        console.warn('   [CPU Handler] WARNING: "cpu-model" parameter is missing. Dialogflow did not extract the CPU model.');
+        return 'Please specify the exact CPU model you are interested in (e.g., "Intel Core i5-14500").';
     }
 
-    const modelKey = cpuModelMap[cpuModelRaw.toLowerCase().trim()];
+    // Normalize the input from Dialogflow: convert to lowercase and remove extra spaces.
+    const normalizedCpuModel = cpuModelRaw.toLowerCase().trim();
+
+    // Use the cpuModelMap to find the standardized key for the cpuDatabase.
+    // This allows for flexible user input like "i9-14900k" to map to "intel core i9-14900k".
+    const modelKey = cpuModelMap[normalizedCpuModel];
+
     if (!modelKey) {
-        console.warn(`  [CPU Handler] WARNING: No matching model key found in cpuModelMap for "${cpuModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the CPU model "${cpuModelRaw}".`;
+        console.warn(`   [CPU Handler] WARNING: No matching model key found in cpuModelMap for normalized input: "${normalizedCpuModel}".`);
+        return `Sorry, I couldn't find detailed specifications for the CPU model "${cpuModelRaw}". Please check the spelling or try a different model.`;
     }
 
+    // Retrieve the CPU data from the cpuDatabase using the standardized key.
     const cpu = cpuDatabase[modelKey];
+
     if (!cpu) {
-        console.error(`  [CPU Handler] ERROR: No CPU data found in cpuDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${cpuModelRaw}". The data might be missing or incorrect.`;
+        console.error(`   [CPU Handler] ERROR: No CPU data found in cpuDatabase for canonical key: "${modelKey}". This indicates a mismatch between cpuModelMap and cpuDatabase.`);
+        return `Sorry, I found "${cpuModelRaw}" but couldn't retrieve its full specifications. The data might be missing or incorrect.`;
     }
 
-    // Construct the detailed response
-    let response = `The ${cpu.name} has ${cpu.coresThreads} and a base clock speed of ${cpu.baseClock}. `;
-    response += `It uses the ${cpu.socket} socket and has a TDP of ${cpu.tdp}. `;
+    // Construct the detailed, user-friendly response using the retrieved CPU data.
+    let response = `Here are the details for the ${cpu.name}: `;
+    response += `It has ${cpu.coresThreads} and a base clock speed of ${cpu.baseClock}. `;
+    response += `It uses the ${cpu.socket} socket and has a TDP (Thermal Design Power) of ${cpu.tdp}. `;
     response += `For compatibility, it works with ${cpu.compatibility}.`;
 
-    console.log('  [CPU Handler] Generated response:', response);
+    console.log('   [CPU Handler] Generated response:', response);
     return response;
 }
 
+// Export the handler function so it can be imported by index.js
 module.exports = { handleCPUIntent };
