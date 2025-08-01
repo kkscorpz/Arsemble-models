@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000; // Use environment variable PORT or defau
 
 // Import handler functions for different component types
 const { handleCPUIntent } = require('./cpu-model');
-const { handleRAMIntent } = require('./ram-model'); // Assuming you have this module
+const { handleRAMIntent } = require('./ram-model'); // Now imported for the specific handler
 const { handleMotherboardIntent } = require('./motherboard-model'); // Assuming you have this module
 const { handleGPUIntent } = require('./gpu-model'); // Assuming you have this module
 const { handleCaseFanIntent } = require('./case-fan-model'); // Assuming you have this module
@@ -52,15 +52,14 @@ app.post('/webhook', (req, res) => {
     // --- Intent Handling Logic ---
     // Use 'if-else if' structure to route requests to appropriate handlers based on intent display name.
 
-    // 1. Handle RAM Intent (assuming you have a unified RAM intent)
-    const ramIntent = 'Get_RAM_Details'; // Example: Unified intent name for RAM
-    if (intentDisplayName === ramIntent) {
+    // 1. Handle the generic RAM Intent
+    // Make sure 'Get_RAM_Details' is the exact name of your generic RAM intent in Dialogflow.
+    if (intentDisplayName === 'Get_RAM_Details') {
         const ramHandlerResult = handleRAMIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = ramHandlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = ramHandlerResult.outputContexts; // Pass back contexts if handler generates them
+        fulfillmentResponse.outputContexts = ramHandlerResult.outputContexts; // Important: pass contexts back
     }
-    // 2. Handle the generic CPU Intent (THIS IS THE CORRECTED PART)
-    // Make sure 'Get_CPU_Details' is the exact name of your generic CPU intent in Dialogflow.
+    // 2. Handle the generic CPU Intent
     else if (intentDisplayName === 'Get_CPU_Details') {
         fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     }
@@ -97,7 +96,7 @@ app.listen(PORT, () => {
 
 // --- Arrays for Other Component Intents ---
 // These arrays are kept for existing specific intents for other components.
-// As you genericize other components (like CPU), you would remove these arrays
+// As you genericize other components (like CPU and RAM), you would remove these arrays
 // and update the 'else if' blocks above to check for single generic intent names.
 const motherboardIntents = [
     "Get_Motherboard_ASUS_PRIME_B550M-K_Details", "Get_Motherboard_MSI_B450M_A_Pro_Max_II_Details",
