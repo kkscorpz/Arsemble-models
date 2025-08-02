@@ -11,8 +11,8 @@ const { handleMotherboardIntent } = require('./motherboard-model');
 const { handleGPUIntent } = require('./gpu-model');
 const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
-const { handleStorageIntent } = require('./storage-model');
-const { handlePSUIntent } = require('./psu-model'); // Updated import
+const { handleStorageIntent } = require('./storage-model'); // Updated import
+const { handlePSUIntent } = require('./psu-model');
 
 app.use(express.json()); // Middleware to parse incoming JSON payloads from Dialogflow
 
@@ -61,7 +61,6 @@ app.post('/webhook', (req, res) => {
     }
     // 2. Handle the generic CPU Intent
     else if (intentDisplayName === 'Get_CPU_Details') {
-        // Assuming handleCPUIntent also needs to be updated to return an object { fulfillmentText, outputContexts }
         fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     }
     // 3. Handle the generic Case Fan Intent
@@ -88,15 +87,17 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = motherboardHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = motherboardHandlerResult.outputContexts;
     }
-    // 7. Handle the generic PSU Intent (CHANGED)
-    else if (intentDisplayName === 'Get_PSU_Details') { // Changed from checking psuIntents array
+    // 7. Handle the generic PSU Intent
+    else if (intentDisplayName === 'Get_PSU_Details') {
         const psuHandlerResult = handlePSUIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = psuHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = psuHandlerResult.outputContexts;
     }
-    // 8. Handle other component intents (still using specific lists for now)
-    else if (storageIntents.includes(intentDisplayName)) {
-        fulfillmentResponse.fulfillmentText = handleStorageIntent(intentDisplayName, parameters);
+    // 8. Handle the generic Storage Intent (CHANGED)
+    else if (intentDisplayName === 'Get_Storage_Details') { // Changed from checking storageIntents array
+        const storageHandlerResult = handleStorageIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
     }
     // Fallback for any intent not explicitly handled above
     else {
@@ -115,5 +116,4 @@ app.listen(PORT, () => {
 });
 
 // --- Arrays for Other Component Intents ---
-// REMOVED psuIntents array, now handled by generic intent
-const storageIntents = ["Get_Storage_Seagate_Barracuda_1TB_Details", "Get_Storage_Western_Digital_Blue_2TB_Details", "Get_Storage_Samsung_970_EVO_Plus_1TB_Details", "Get_Storage_Crucial_MX500_500GB_Details"];
+// REMOVED storageIntents array, now handled by generic intent
