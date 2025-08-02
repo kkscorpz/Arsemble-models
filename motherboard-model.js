@@ -1,12 +1,11 @@
 // motherboard-model.js
-// Motherboard database
 const motherboardDatabase = {
     "asus prime b550m-k": {
         name: "ASUS PRIME B550M-K",
         socket: "AM4",
         chipset: "B550",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 128GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 128GB",
         features: "PCIe 4.0, HDMI, DVI-D, Realtek audio, 1Gb LAN",
         compatibility: "Ryzen 3000/5000 series (excluding 3200G/3400G without BIOS update)"
     },
@@ -14,8 +13,8 @@ const motherboardDatabase = {
         name: "MSI B450M A PRO MAX II",
         socket: "AM4",
         chipset: "B450",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 64GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 64GB",
         features: "PCIe 3.0, HDMI, DVI, USB 3.2 Gen1, basic VRM",
         compatibility: "Supports Ryzen 1000 to 5000 series with BIOS update"
     },
@@ -23,8 +22,8 @@ const motherboardDatabase = {
         name: "MSI PRO H610M-S DDR4",
         socket: "LGA 1700",
         chipset: "H610",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 64GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 64GB",
         features: "Basic IO, 1x PCIe x16, HDMI, VGA, 1Gb LAN",
         compatibility: "Supports 12th/13th/14th Gen Intel CPUs"
     },
@@ -32,8 +31,8 @@ const motherboardDatabase = {
         name: "RAMSTA RS-B450MP",
         socket: "AM4",
         chipset: "B450",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 64GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 64GB",
         features: "Entry-level, basic IO ports",
         compatibility: "Supports Ryzen 1000 to 5000 series (BIOS update may be needed)"
     },
@@ -41,8 +40,8 @@ const motherboardDatabase = {
         name: "RAMSTA RS-H311D4",
         socket: "LGA 1151",
         chipset: "H310",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 32GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 32GB",
         features: "Legacy board, VGA/HDMI, USB 3.0",
         compatibility: "Supports Intel 8th/9th Gen CPUs (Coffee Lake)"
     },
@@ -50,8 +49,8 @@ const motherboardDatabase = {
         name: "MSI B650M Gaming Plus WiFi",
         socket: "AM5",
         chipset: "B650",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR5, up to 128GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR5, up to 128GB",
         features: "WiFi 6E, PCIe 4.0, 2.5Gb LAN, USB-C",
         compatibility: "Supports Ryzen 7000/8000 series"
     },
@@ -59,8 +58,8 @@ const motherboardDatabase = {
         name: "MSI B760M Gaming Plus WiFi DDR4",
         socket: "LGA 1700",
         chipset: "B760",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 128GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 128GB",
         features: "PCIe 5.0, WiFi 6, HDMI/DP, 2.5Gb LAN",
         compatibility: "Supports Intel 12th/13th/14th Gen CPUs"
     },
@@ -68,8 +67,8 @@ const motherboardDatabase = {
         name: "GIGABYTE H610M K DDR4",
         socket: "LGA 1700",
         chipset: "H610",
-        form_factor: "Micro-ATX", // Changed to underscore
-        memory_support: "DDR4, up to 64GB", // Changed to underscore
+        formFactor: "Micro-ATX",
+        memorySupport: "DDR4, up to 64GB",
         features: "HDMI, VGA, Realtek audio, PCIe 4.0",
         compatibility: "Supports Intel 12th/13th/14th Gen CPUs"
     }
@@ -116,122 +115,81 @@ const motherboardModelMap = {
 
 /**
  * Handles Dialogflow intents related to Motherboard information.
- * @param {object} parameters - Dialogflow extracted parameters.
- * @param {Array} inputContexts - Active contexts from Dialogflow.
- * @param {string} projectId - Google Cloud Project ID.
- * @param {string} sessionId - Dialogflow session ID.
- * @returns {object} An object with `fulfillmentText` and `outputContexts`.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'motherboard-model' and 'motherboard-detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId) {
-    let mbModelRaw = parameters["motherboard-model"]; // Assuming Dialogflow parameter for motherboard model
+    console.log('    [MB Handler] Called.');
+    console.log('    [MB Handler] Received parameters:', parameters);
+    console.log('    [MB Handler] Received inputContexts:', inputContexts);
 
-    // Assuming Dialogflow parameter for detail type is 'motherboard-detail-type'
-    let requestedDetail = parameters["motherboard_detail_type"];
-    if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
-        requestedDetail = requestedDetail[0];
-    }
-    if (typeof requestedDetail === 'string') {
-        requestedDetail = requestedDetail.toLowerCase().replace(/[\s-]/g, '_');
-    }
+    let motherboardModelRaw = parameters["motherboard-model"]; // Expecting 'motherboard-model' from Dialogflow
+    const requestedDetail = parameters["motherboard-detail"]; // Expecting 'motherboard-detail' for specific requests
 
-    let modelKey;
-    if (mbModelRaw) {
-        if (Array.isArray(mbModelRaw) && mbModelRaw.length > 0) {
-            mbModelRaw = mbModelRaw[0];
-        }
-        const lowerCaseRaw = String(mbModelRaw).toLowerCase().trim();
-        modelKey = motherboardModelMap[lowerCaseRaw] || lowerCaseRaw;
+    let motherboardModelKey;
+    if (motherboardModelRaw) {
+        const lowerCaseRaw = motherboardModelRaw.toLowerCase().trim();
+        motherboardModelKey = motherboardModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    // Check 'motherboard_details_context' for follow-up questions
-    if (!modelKey && inputContexts && inputContexts.length > 0) {
+    // Try to get motherboard-model from context if not provided in current turn
+    if (!motherboardModelKey && inputContexts && inputContexts.length > 0) {
         const mbContext = inputContexts.find(context => context.name.endsWith('/contexts/motherboard_details_context'));
         if (mbContext && mbContext.parameters && mbContext.parameters['motherboard-model']) {
-            let contextMbModelRaw = mbContext.parameters['motherboard-model'];
-            if (Array.isArray(contextMbModelRaw) && contextMbModelRaw.length > 0) {
-                contextMbModelRaw = contextMbModelRaw[0];
-            }
-            const lowerCaseContextRaw = String(contextMbModelRaw).toLowerCase().trim();
-            modelKey = motherboardModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!mbModelRaw) {
-                mbModelRaw = contextMbModelRaw;
-            }
+            const contextMbModelRaw = mbContext.parameters['motherboard-model'];
+            const lowerCaseContextRaw = contextMbModelRaw.toLowerCase().trim();
+            motherboardModelKey = motherboardModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!motherboardModelRaw) { motherboardModelRaw = contextMbModelRaw; } // Update raw if it was empty
+            console.log('    [MB Handler] Retrieved motherboard-model from context:', motherboardModelKey);
         }
     }
 
     let fulfillmentText = 'Sorry, I couldn\'t find details for that Motherboard model.';
     let outputContexts = [];
 
-    const mb = motherboardDatabase[modelKey];
-
-    // --- DEBUGGING LOGS ---
-    console.log('--- handleMotherboardIntent Debug ---');
-    console.log('Parameters received from Dialogflow:', parameters);
-    console.log('mbModelRaw (processed):', mbModelRaw);
-    console.log('requestedDetail (processed):', requestedDetail);
-    console.log('modelKey (used for database lookup):', modelKey);
-    console.log('Motherboard object found in database:', mb);
-    if (mb && requestedDetail) {
-        console.log(`Value for mb[${requestedDetail}]:`, mb[requestedDetail]);
-    }
-    console.log('--- End Debug ---');
-    // --- END DEBUGGING LOGS ---
+    const mb = motherboardDatabase[motherboardModelKey];
 
     if (mb) {
+        // Handle specific detail request
         if (requestedDetail && mb[requestedDetail]) {
-            // Specific attribute response
-            switch (requestedDetail) {
-                case "name":
-                    fulfillmentText = `The name of the motherboard is ${mb.name}.`;
-                    break;
-                case "socket":
-                    fulfillmentText = `The ${mb.name} uses the ${mb.socket} socket.`;
-                    break;
-                case "chipset":
-                    fulfillmentText = `The ${mb.name} has the ${mb.chipset} chipset.`;
-                    break;
-                case "form_factor":
-                    fulfillmentText = `The ${mb.name} is a ${mb.form_factor} motherboard.`;
-                    break;
-                case "memory_support":
-                    fulfillmentText = `The ${mb.name} supports ${mb.memory_support} memory.`;
-                    break;
-                case "features":
-                    fulfillmentText = `Key features of the ${mb.name} include: ${mb.features}.`;
-                    break;
-                case "compatibility":
-                    fulfillmentText = `Regarding compatibility for ${mb.name}: ${mb.compatibility}`;
-                    break;
-                default:
-                    fulfillmentText = `For ${mb.name}, the ${requestedDetail.replace(/_/g, ' ')} is: ${mb[requestedDetail]}.`;
-                    break;
-            }
+            fulfillmentText = `For the ${mb.name}, the ${requestedDetail} is: ${mb[requestedDetail]}.`;
+            console.log(`    [MB Handler] Responding with specific detail: ${requestedDetail}`);
         } else if (requestedDetail) {
-            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail.replace(/_/g, ' ')} for ${mb.name}.`;
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${mb.name}.`;
+            console.log(`    [MB Handler] Requested detail "${requestedDetail}" not found for ${mb.name}.`);
         } else {
-            // General details
+            // General info if no specific detail was requested
             let response = `The ${mb.name} uses the ${mb.socket} socket with the ${mb.chipset} chipset. `;
-            response += `It is a ${mb.form_factor} board supporting ${mb.memory_support}. `;
+            response += `It is a ${mb.formFactor} board supporting ${mb.memorySupport}. `;
             response += `Key features include: ${mb.features}. `;
             response += `Compatibility: ${mb.compatibility}.`;
             fulfillmentText = response;
+            console.log('    [MB Handler] Responding with general info.');
         }
 
-        // Set 'motherboard_details_context'
-        if (mbModelRaw) {
+        // Set the output context to remember the Motherboard model for follow-up questions
+        if (motherboardModelRaw) { // Ensure model is available to store in context
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/motherboard_details_context`,
                 lifespanCount: 5,
                 parameters: {
-                    'motherboard-model': mbModelRaw
+                    'motherboard-model': motherboardModelRaw
                 }
             });
+            console.log('    [MB Handler] Set output context: motherboard_details_context');
+        } else {
+            console.warn('    [MB Handler] WARNING: motherboardModelRaw was empty, could not set motherboard_details_context.');
         }
     } else {
-        fulfillmentText = `Sorry, I couldn't find details for "${mbModelRaw || 'that Motherboard model'}". Please ensure the name is correct or try another model.`;
+        console.log(`    [MB Handler] Motherboard model "${motherboardModelRaw}" (key: "${motherboardModelKey}") not found in database.`);
     }
 
+    console.log('    [MB Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [MB Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
-module.exports = { motherboardDatabase, motherboardModelMap, handleMotherboardIntent };
+module.exports = { handleMotherboardIntent };
