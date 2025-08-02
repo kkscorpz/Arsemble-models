@@ -1,10 +1,9 @@
-// psu-model.js
-// PSU database
+// psu.js
 const psuDatabase = {
     "corsair rm850x": {
         name: "Corsair RM850x",
         wattage: "850W",
-        efficiency_rating: "80 Plus Gold", // Changed to underscore
+        efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Suitable for most high-performance gaming PCs, especially with RTX 30-series/40-series or RX 6000/7000 series GPUs. Its modularity helps with cable management. Ensure your case has enough space for an ATX PSU."
@@ -12,7 +11,7 @@ const psuDatabase = {
     "cooler master mwe white 750w": {
         name: "Cooler Master MWE White 750W",
         wattage: "750W",
-        efficiency_rating: "80 Plus White",
+        efficiencyRating: "80 Plus White",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Suitable for most mid-range gaming PCs with single-GPU setups. Its non-modular design means all cables are fixed, so ensure good cable management in your case. Verify it has sufficient PCIe power connectors for your chosen GPU."
@@ -20,7 +19,7 @@ const psuDatabase = {
     "corsair cx650": {
         name: "Corsair CX650",
         wattage: "650W",
-        efficiency_rating: "80 Plus Bronze",
+        efficiencyRating: "80 Plus Bronze",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Sufficient for many builds using CPUs like Ryzen 5/Intel i5 and GPUs like RTX 3050/3060 or RX 6600/6700. Like other non-modular PSUs, plan for cable management. Ensure required PCIe power connectors for your GPU."
@@ -28,7 +27,7 @@ const psuDatabase = {
     "cougar gx-f 750w": {
         name: "Cougar GX-F 750W",
         wattage: "750W",
-        efficiency_rating: "80 Plus Gold",
+        efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "A good choice for mid to high-end systems. Its fully modular design simplifies cable management, reducing clutter in your PC build. Ensure it has enough PCIe connectors for your GPU."
@@ -36,7 +35,7 @@ const psuDatabase = {
     "seasonic focus plus gold 550w": {
         name: "Seasonic Focus Plus Gold 550W",
         wattage: "550W",
-        efficiency_rating: "80 Plus Gold",
+        efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
         compatibility: "Ideal for entry-level to mid-range builds with less power-hungry GPUs (e.g., RTX 3050/3060, RX 6600). Its fully modular design is great for clean builds. Always check your GPU's minimum recommended PSU wattage."
@@ -78,105 +77,62 @@ const psuModelMap = {
 
 /**
  * Handles Dialogflow intents related to PSU (Power Supply Unit) information.
- * @param {object} parameters - Dialogflow extracted parameters.
- * @param {Array} inputContexts - Active contexts from Dialogflow.
- * @param {string} projectId - Google Cloud Project ID.
- * @param {string} sessionId - Dialogflow session ID.
- * @returns {object} An object with `fulfillmentText` and `outputContexts`.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'psu-model' and 'psu-detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
-    let psuModelRaw = parameters["psu-model"]; // Assuming Dialogflow parameter for PSU model
+    console.log('    [PSU Handler] Called.');
+    console.log('    [PSU Handler] Received parameters:', parameters);
+    console.log('    [PSU Handler] Received inputContexts:', inputContexts);
 
-    // Assuming Dialogflow parameter for detail type is 'psu-detail-type'
-    let requestedDetail = parameters["psu_detail_type"];
-    if (Array.isArray(requestedDetail) && requestedDetail.length > 0) {
-        requestedDetail = requestedDetail[0];
-    }
-    if (typeof requestedDetail === 'string') {
-        requestedDetail = requestedDetail.toLowerCase().replace(/[\s-]/g, '_');
-    }
+    let psuModelRaw = parameters["psu-model"]; // Expecting 'psu-model' from Dialogflow
+    const requestedDetail = parameters["psu-detail"]; // Expecting 'psu-detail' for specific requests
 
-    let modelKey;
+    let psuModelKey;
     if (psuModelRaw) {
-        if (Array.isArray(psuModelRaw) && psuModelRaw.length > 0) {
-            psuModelRaw = psuModelRaw[0];
-        }
-        const lowerCaseRaw = String(psuModelRaw).toLowerCase().trim();
-        modelKey = psuModelMap[lowerCaseRaw] || lowerCaseRaw;
+        const lowerCaseRaw = psuModelRaw.toLowerCase().trim();
+        psuModelKey = psuModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    // Check 'psu_details_context' for follow-up questions
-    if (!modelKey && inputContexts && inputContexts.length > 0) {
+    // Try to get psu-model from context if not provided in current turn
+    if (!psuModelKey && inputContexts && inputContexts.length > 0) {
         const psuContext = inputContexts.find(context => context.name.endsWith('/contexts/psu_details_context'));
         if (psuContext && psuContext.parameters && psuContext.parameters['psu-model']) {
-            let contextPsuModelRaw = psuContext.parameters['psu-model'];
-            if (Array.isArray(contextPsuModelRaw) && contextPsuModelRaw.length > 0) {
-                contextPsuModelRaw = contextPsuModelRaw[0];
-            }
-            const lowerCaseContextRaw = String(contextPsuModelRaw).toLowerCase().trim();
-            modelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!psuModelRaw) {
-                psuModelRaw = contextPsuModelRaw;
-            }
+            const contextPsuModelRaw = psuContext.parameters['psu-model'];
+            const lowerCaseContextRaw = contextPsuModelRaw.toLowerCase().trim();
+            psuModelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!psuModelRaw) { psuModelRaw = contextPsuModelRaw; } // Update raw if it was empty
+            console.log('    [PSU Handler] Retrieved psu-model from context:', psuModelKey);
         }
     }
 
-    let fulfillmentText = 'Sorry, I couldn\'t find details for that PSU model.';
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that Power Supply Unit model.';
     let outputContexts = [];
 
-    const psu = psuDatabase[modelKey];
-
-    // --- DEBUGGING LOGS ---
-    console.log('--- handlePSUIntent Debug ---');
-    console.log('Parameters received from Dialogflow:', parameters);
-    console.log('psuModelRaw (processed):', psuModelRaw);
-    console.log('requestedDetail (processed):', requestedDetail);
-    console.log('modelKey (used for database lookup):', modelKey);
-    console.log('PSU object found in database:', psu);
-    if (psu && requestedDetail) {
-        console.log(`Value for psu[${requestedDetail}]:`, psu[requestedDetail]);
-    }
-    console.log('--- End Debug ---');
-    // --- END DEBUGGING LOGS ---
+    const psu = psuDatabase[psuModelKey];
 
     if (psu) {
+        // Handle specific detail request
         if (requestedDetail && psu[requestedDetail]) {
-            // Specific attribute response
-            switch (requestedDetail) {
-                case "name":
-                    fulfillmentText = `The name of the PSU is ${psu.name}.`;
-                    break;
-                case "wattage":
-                    fulfillmentText = `The ${psu.name} has a wattage of ${psu.wattage}.`;
-                    break;
-                case "efficiency_rating":
-                    fulfillmentText = `The ${psu.name} has an efficiency rating of ${psu.efficiency_rating}.`;
-                    break;
-                case "modularity":
-                    fulfillmentText = `The ${psu.name} is a ${psu.modularity} power supply.`;
-                    break;
-                case "cables":
-                    fulfillmentText = `The ${psu.name} typically includes cables for ${psu.cables}.`;
-                    break;
-                case "compatibility":
-                    fulfillmentText = `Regarding compatibility for ${psu.name}: ${psu.compatibility}`;
-                    break;
-                default:
-                    fulfillmentText = `For ${psu.name}, the ${requestedDetail.replace(/_/g, ' ')} is: ${psu[requestedDetail]}.`;
-                    break;
-            }
+            fulfillmentText = `For the ${psu.name}, the ${requestedDetail} is: ${psu[requestedDetail]}.`;
+            console.log(`    [PSU Handler] Responding with specific detail: ${requestedDetail}`);
         } else if (requestedDetail) {
-            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail.replace(/_/g, ' ')} for ${psu.name}.`;
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${psu.name}.`;
+            console.log(`    [PSU Handler] Requested detail "${requestedDetail}" not found for ${psu.name}.`);
         } else {
-            // General details
-            let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiency_rating} certified, ${psu.modularity} power supply. `;
+            // General info if no specific detail was requested
+            let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
             response += `It typically includes cables for ${psu.cables}. `;
             response += `Compatibility: ${psu.compatibility}`;
             fulfillmentText = response;
+            console.log('    [PSU Handler] Responding with general info.');
         }
 
-        // Set 'psu_details_context'
-        if (psuModelRaw) {
+        // Set the output context to remember the PSU model for follow-up questions
+        if (psuModelRaw) { // Ensure model is available to store in context
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/psu_details_context`,
                 lifespanCount: 5,
@@ -184,12 +140,17 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
                     'psu-model': psuModelRaw
                 }
             });
+            console.log('    [PSU Handler] Set output context: psu_details_context');
+        } else {
+            console.warn('    [PSU Handler] WARNING: psuModelRaw was empty, could not set psu_details_context.');
         }
     } else {
-        fulfillmentText = `Sorry, I couldn't find details for "${psuModelRaw || 'that PSU model'}". Please ensure the name is correct or try another model.`;
+        console.log(`    [PSU Handler] PSU model "${psuModelRaw}" (key: "${psuModelKey}") not found in database.`);
     }
 
+    console.log('    [PSU Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [PSU Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
-module.exports = { psuDatabase, psuModelMap, handlePSUIntent };
+module.exports = { handlePSUIntent };
