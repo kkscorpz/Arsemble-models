@@ -7,12 +7,12 @@ const PORT = process.env.PORT || 3000; // Use environment variable PORT or defau
 // Import handler functions for different component types
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
-const { handleMotherboardIntent } = require('./motherboard-model'); // Updated import
+const { handleMotherboardIntent } = require('./motherboard-model');
 const { handleGPUIntent } = require('./gpu-model');
 const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
 const { handleStorageIntent } = require('./storage-model');
-const { handlePSUIntent } = require('./psu-model');
+const { handlePSUIntent } = require('./psu-model'); // Updated import
 
 app.use(express.json()); // Middleware to parse incoming JSON payloads from Dialogflow
 
@@ -56,13 +56,12 @@ app.post('/webhook', (req, res) => {
     if (intentDisplayName === 'Get_RAM_Details') {
         const ramHandlerResult = handleRAMIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = ramHandlerResult.fulfillmentText;
-        fulfillmentResponse.fulfillmentMessages = ramHandlerResult.fulfillmentMessages; // Make sure to pass messages
+        fulfillmentResponse.fulfillmentMessages = ramHandlerResult.fulfillmentMessages;
         fulfillmentResponse.outputContexts = ramHandlerResult.outputContexts;
     }
     // 2. Handle the generic CPU Intent
     else if (intentDisplayName === 'Get_CPU_Details') {
         // Assuming handleCPUIntent also needs to be updated to return an object { fulfillmentText, outputContexts }
-        // For now, keeping it as is based on your current CPU model.js which returns only fulfillmentText
         fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     }
     // 3. Handle the generic Case Fan Intent
@@ -83,17 +82,21 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = cpuCoolerHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = cpuCoolerHandlerResult.outputContexts;
     }
-    // 6. Handle the generic Motherboard Intent (CHANGED)
-    else if (intentDisplayName === 'Get_Motherboard_Details') { // Changed from checking motherboardIntents array
+    // 6. Handle the generic Motherboard Intent
+    else if (intentDisplayName === 'Get_Motherboard_Details') {
         const motherboardHandlerResult = handleMotherboardIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = motherboardHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = motherboardHandlerResult.outputContexts;
     }
-    // 7. Handle other component intents (still using specific lists for now)
+    // 7. Handle the generic PSU Intent (CHANGED)
+    else if (intentDisplayName === 'Get_PSU_Details') { // Changed from checking psuIntents array
+        const psuHandlerResult = handlePSUIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = psuHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = psuHandlerResult.outputContexts;
+    }
+    // 8. Handle other component intents (still using specific lists for now)
     else if (storageIntents.includes(intentDisplayName)) {
         fulfillmentResponse.fulfillmentText = handleStorageIntent(intentDisplayName, parameters);
-    } else if (psuIntents.includes(intentDisplayName)) {
-        fulfillmentResponse.fulfillmentText = handlePSUIntent(intentDisplayName, parameters);
     }
     // Fallback for any intent not explicitly handled above
     else {
@@ -112,6 +115,5 @@ app.listen(PORT, () => {
 });
 
 // --- Arrays for Other Component Intents ---
-// REMOVED motherboardIntents array, now handled by generic intent
+// REMOVED psuIntents array, now handled by generic intent
 const storageIntents = ["Get_Storage_Seagate_Barracuda_1TB_Details", "Get_Storage_Western_Digital_Blue_2TB_Details", "Get_Storage_Samsung_970_EVO_Plus_1TB_Details", "Get_Storage_Crucial_MX500_500GB_Details"];
-const psuIntents = ["Get_PSU_Corsair_RM850x_Details", "Get_PSU_Cooler_Master_MWE_White_750W_Details", "Get_PSU_Corsair_CX650_Details", "Get_PSU_Cougar_GX-F_750W_Details", "Get_PSU_Seasonic_Focus_Plus_Gold_550W_Details"];
