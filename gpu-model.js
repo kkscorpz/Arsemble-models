@@ -50,7 +50,7 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
     console.log('   [GPU Handler] Received parameters:', parameters);
     console.log('   [GPU Handler] Received inputContexts:', inputContexts);
 
-    let gpuModelRaw = parameters["gpu-model"]; // This is the exact parameter name from Dialogflow
+    let gpuModelRaw = parameters["Gpu-model"]; // This is the exact parameter name from Dialogflow
     const requestedDetail = parameters.requested_detail;
 
     let gpuModelKey;
