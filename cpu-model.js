@@ -1,7 +1,6 @@
 // cpu-model.js
 
 // This database holds the actual specifications for each CPU.
-// Keys here MUST be all lowercase to match the normalized input from Dialogflow.
 const cpuDatabase = {
     "intel core i9-14900k": {
         name: "Intel Core i9-14900K",
@@ -9,7 +8,8 @@ const cpuDatabase = {
         baseClock: "3.2 GHz (P), 2.4 GHz (E)",
         coresThreads: "24 cores (8P + 16E), 32 threads",
         tdp: "125W TDP / 253W max",
-        compatibility: "Intel 600/700 series chipsets, BIOS update may be needed, Z790 recommended, requires strong cooling (240mm+), 750W+ PSU"
+        compatibility: "Intel 600/700 series chipsets, BIOS update may be needed, Z790 recommended, requires strong cooling (240mm+), 750W+ PSU",
+        price: "₱32,000" // Added price
     },
     "intel core i7-14700k": {
         name: "Intel Core i7-14700K",
@@ -17,7 +17,8 @@ const cpuDatabase = {
         baseClock: "3.4 GHz (P), 2.5 GHz (E)",
         coresThreads: "20 cores (8P + 12E), 28 threads",
         tdp: "125W TDP / 253W max",
-        compatibility: "Z790 or B760, high-performance cooling, 750W+ PSU"
+        compatibility: "Z790 or B760, high-performance cooling, 750W+ PSU",
+        price: "₱26,000" // Added price
     },
     "intel core i7-13700k": {
         name: "Intel Core i7-13700K",
@@ -25,7 +26,8 @@ const cpuDatabase = {
         baseClock: "~3.4 GHz (P), ~2.5 GHz (E)",
         coresThreads: "16 cores (8P + 8E), 24 threads",
         tdp: "125W TDP / 253W max",
-        compatibility: "Z790 or B760, strong cooling, 700W+ PSU"
+        compatibility: "Z790 or B760, strong cooling, 700W+ PSU",
+        price: "₱24,000" // Added price
     },
     "intel core i5-14600k": {
         name: "Intel Core i5-14600K",
@@ -33,7 +35,8 @@ const cpuDatabase = {
         baseClock: "3.5 GHz (P), 2.6 GHz (E)",
         coresThreads: "14 cores (6P + 8E), 20 threads",
         tdp: "125W TDP / 181W max",
-        compatibility: "B760 or Z790, mid to high-end cooling, 650W+ PSU"
+        compatibility: "B760 or Z790, mid to high-end cooling, 650W+ PSU",
+        price: "₱17,000" // Added price
     },
     "intel core i5-14500": {
         name: "Intel Core i5-14500",
@@ -41,7 +44,8 @@ const cpuDatabase = {
         baseClock: "2.6 GHz (P), 1.9 GHz (E)",
         coresThreads: "14 cores (6P + 8E), 20 threads",
         tdp: "65W TDP / 154W max",
-        compatibility: "B760 or H610, basic cooling, 550W+ PSU"
+        compatibility: "B760 or H610, basic cooling, 550W+ PSU",
+        price: "₱13,500" // Added price
     },
     "intel core i5-13400": {
         name: "Intel Core i5-13400",
@@ -49,7 +53,8 @@ const cpuDatabase = {
         baseClock: "2.5 GHz (P), 1.8 GHz (E)",
         coresThreads: "10 cores (6P + 4E), 16 threads",
         tdp: "65W TDP / 148W max",
-        compatibility: "H610 or B760, basic cooling, 500W+ PSU"
+        compatibility: "H610 or B760, basic cooling, 500W+ PSU",
+        price: "₱11,000" // Added price
     },
     "intel core i3-14100": {
         name: "Intel Core i3-14100",
@@ -57,7 +62,8 @@ const cpuDatabase = {
         baseClock: "3.5 GHz (P)",
         coresThreads: "4 cores (P only), 8 threads",
         tdp: "60W TDP / 110W max",
-        compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU"
+        compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU",
+        price: "₱8,000" // Added price
     },
     "intel core i3-13100": {
         name: "Intel Core i3-13100",
@@ -65,7 +71,8 @@ const cpuDatabase = {
         baseClock: "3.4 GHz (P)",
         coresThreads: "4 cores, 8 threads",
         tdp: "60W TDP / ~89W max",
-        compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU"
+        compatibility: "H610 or B760, stock or basic cooling, 450W+ PSU",
+        price: "₱7,500" // Added price
     },
     "amd ryzen 9 7950x": {
         name: "AMD Ryzen 9 7950X",
@@ -73,7 +80,8 @@ const cpuDatabase = {
         baseClock: "4.5 GHz",
         coresThreads: "16 cores / 32 threads",
         tdp: "170W TDP / 230W max",
-        compatibility: "AM5 boards (X670E/X670/B650E), DDR5 only, 360mm+ AIO, 850W+ PSU"
+        compatibility: "AM5 boards (X670E/X670/B650E), DDR5 only, 360mm+ AIO, 850W+ PSU",
+        price: "₱34,000" // Added price
     },
     "amd ryzen 9 9900x": {
         name: "AMD Ryzen 9 9900X",
@@ -81,7 +89,8 @@ const cpuDatabase = {
         baseClock: "TBD",
         coresThreads: "TBD",
         tdp: "TBD",
-        compatibility: "Expected AM5 + DDR5 + high cooling"
+        compatibility: "Expected AM5 + DDR5 + high cooling",
+        price: "₱45,000" // Added price
     },
     "amd ryzen 9 9900x3d": {
         name: "AMD Ryzen 9 9900X3D",
@@ -89,7 +98,8 @@ const cpuDatabase = {
         baseClock: "TBD",
         coresThreads: "TBD",
         tdp: "TBD",
-        compatibility: "Expected AM5, DDR5, advanced cooling due to 3D V-Cache"
+        compatibility: "Expected AM5, DDR5, advanced cooling due to 3D V-Cache",
+        price: "₱50,000" // Added price
     },
     "amd ryzen 7 7700x": {
         name: "AMD Ryzen 7 7700X",
@@ -97,7 +107,8 @@ const cpuDatabase = {
         baseClock: "4.5 GHz",
         coresThreads: "8 cores / 16 threads",
         tdp: "105W TDP",
-        compatibility: "AM5 only, DDR5 only, 240mm AIO or mid-high air cooling, 650W+ PSU"
+        compatibility: "AM5 only, DDR5 only, 240mm AIO or mid-high air cooling, 650W+ PSU",
+        price: "₱19,000" // Added price
     },
     "amd ryzen 7 5700x": {
         name: "AMD Ryzen 7 5700X",
@@ -105,7 +116,8 @@ const cpuDatabase = {
         baseClock: "3.4 GHz",
         coresThreads: "8 cores / 16 threads",
         tdp: "65W TDP",
-        compatibility: "AM4 boards (B550, X570), DDR4, BIOS update may be needed, 550W+ PSU"
+        compatibility: "AM4 boards (B550, X570), DDR4, BIOS update may be needed, 550W+ PSU",
+        price: "₱14,500" // Added price
     },
     "amd ryzen 5 5600x": {
         name: "AMD Ryzen 5 5600X",
@@ -113,7 +125,8 @@ const cpuDatabase = {
         baseClock: "3.7 GHz",
         coresThreads: "6 cores / 12 threads",
         tdp: "65W TDP",
-        compatibility: "AM4 DDR4, B550/X570, basic to mid-air cooling, 550W+ PSU"
+        compatibility: "AM4 DDR4, B550/X570, basic to mid-air cooling, 550W+ PSU",
+        price: "₱11,000" // Added price
     },
     "amd ryzen 5 5600g": {
         name: "AMD Ryzen 5 5600G",
@@ -121,7 +134,8 @@ const cpuDatabase = {
         baseClock: "3.9 GHz",
         coresThreads: "6 cores / 12 threads",
         tdp: "65W TDP",
-        compatibility: "AM4 DDR4, integrated GPU, stock cooling OK, 450W+ PSU"
+        compatibility: "AM4 DDR4, integrated GPU, stock cooling OK, 450W+ PSU",
+        price: "₱8,500" // Added price
     },
     "amd ryzen 3 3200g": {
         name: "AMD Ryzen 3 3200G",
@@ -129,13 +143,11 @@ const cpuDatabase = {
         baseClock: "3.6 GHz",
         coresThreads: "4 cores / 4 threads",
         tdp: "65W TDP",
-        compatibility: "AM4, Vega graphics, stock cooler OK, 400W+ PSU"
+        compatibility: "AM4, Vega graphics, stock cooler OK, 400W+ PSU",
+        price: "₱6,000" // Added price
     }
 };
 
-// This map helps convert various user inputs (synonyms) into the standard keys
-// used in cpuDatabase. All keys here should be lowercase.
-// Ensure this list is in sync with your Dialogflow @CPU-model entity's synonyms.
 const cpuModelMap = {
     // Intel CPUs
     "intel core i9-14900k": "intel core i9-14900k", "core i9-14900k": "intel core i9-14900k", "i9-14900k": "intel core i9-14900k", "intel i9-14900k": "intel core i9-14900k", "14900k": "intel core i9-14900k", "intel core i9 14900k": "intel core i9-14900k", "core i9 14900k": "intel core i9-14900k", "i9 14900k": "intel core i9-14900k",
@@ -176,27 +188,22 @@ const cpuModelMap = {
  * Handles Dialogflow intents related to CPU information.
  * It extracts the CPU model parameter and retrieves its details from the cpuDatabase.
  * @param {string} intent - The display name of the intent. (e.g., 'Get_CPU_Details')
- * @param {object} parameters - The parameters extracted by Dialogflow, including the 'cpu-model'.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including the 'cpu-model' and 'cpu-detail'.
  * @returns {string} The fulfillment text response.
  */
 function handleCPUIntent(intent, parameters) {
     console.log('   [CPU Handler] Called for intent:', intent);
     console.log('   [CPU Handler] Received parameters:', parameters);
 
-    // Get the raw CPU model value from Dialogflow's parameters.
-    // The parameter name MUST match what you set in Dialogflow (cpu-model, all lowercase).
     const cpuModelRaw = parameters["cpu-model"];
+    const requestedDetail = parameters["cpu-detail"];
 
     if (!cpuModelRaw) {
         console.warn('   [CPU Handler] WARNING: "cpu-model" parameter is missing. Dialogflow did not extract the CPU model.');
         return 'Please specify the exact CPU model you are interested in (e.g., "Intel Core i5-14500").';
     }
 
-    // Normalize the input from Dialogflow: convert to lowercase and remove extra spaces.
     const normalizedCpuModel = cpuModelRaw.toLowerCase().trim();
-
-    // Use the cpuModelMap to find the standardized key for the cpuDatabase.
-    // This allows for flexible user input like "i9-14900k" to map to "intel core i9-14900k".
     const modelKey = cpuModelMap[normalizedCpuModel];
 
     if (!modelKey) {
@@ -204,7 +211,6 @@ function handleCPUIntent(intent, parameters) {
         return `Sorry, I couldn't find detailed specifications for the CPU model "${cpuModelRaw}". Please check the spelling or try a different model.`;
     }
 
-    // Retrieve the CPU data from the cpuDatabase using the standardized key.
     const cpu = cpuDatabase[modelKey];
 
     if (!cpu) {
@@ -212,10 +218,21 @@ function handleCPUIntent(intent, parameters) {
         return `Sorry, I found "${cpuModelRaw}" but couldn't retrieve its full specifications. The data might be missing or incorrect.`;
     }
 
+    // Handle specific detail requests
+    if (requestedDetail) {
+        let detailValue = cpu[requestedDetail];
+        if (detailValue !== undefined) {
+            return `For the ${cpu.name}, the ${requestedDetail} is: ${detailValue}.`;
+        } else {
+            return `Sorry, I don't have information about the ${requestedDetail} for ${cpu.name}.`;
+        }
+    }
+
     // Construct the detailed, user-friendly response using the retrieved CPU data.
     let response = `Here are the details for the ${cpu.name}: `;
     response += `It has ${cpu.coresThreads} and a base clock speed of ${cpu.baseClock}. `;
     response += `It uses the ${cpu.socket} socket and has a TDP (Thermal Design Power) of ${cpu.tdp}. `;
+    response += `The estimated price is ${cpu.price}. `; // Added price
     response += `For compatibility, it works with ${cpu.compatibility}.`;
 
     console.log('   [CPU Handler] Generated response:', response);
