@@ -1,64 +1,40 @@
 // gpu-model.js
 const gpuDatabase = {
-    "gigabyte rtx 3050 eagle oc": {
-        name: "Gigabyte RTX 3050 EAGLE OC",
-        vram: "8GB GDDR6",
-        clockSpeed: "~1777 MHz (Boost)",
-        powerConsumption: "~130 Watts",
-        slotType: "PCIe 4.0 x16",
-        compatibility: "Requires a motherboard with an available PCIe x16 slot (compatible with PCIe 3.0/4.0/5.0). Needs a PSU with sufficient wattage (450W-550W recommended total system power) and at least one 8-pin PCIe power connector. Ensure your case has enough physical clearance.",
-        price: "₱16,000" // Added price
+    "gpu-key-example": {
+        name: "GPU Name Example",
+        vram: "XGB GDDR6",
+        clockSpeed: "~XXXX MHz (Boost)",
+        powerConsumption: "~XXX Watts",
+        slotType: "PCIe X.X xX",
+        compatibility: "Describe motherboard, PSU, and case requirements here."
     },
-    "msi rtx 4060 gaming x": {
-        name: "MSI RTX 4060 GAMING X",
-        vram: "8GB GDDR6",
-        clockSpeed: "~2595 MHz (Boost)",
-        powerConsumption: "~115 Watts",
-        slotType: "PCIe 4.0 x8",
-        compatibility: "Requires a motherboard with an available PCIe x16 slot. Needs a 550W+ PSU with one 8-pin PCIe power connector. Compatible with modern cases.",
-        price: "₱22,000" // Added price
-    }
+    // Add more GPU models here
 };
 
-// GPU Model Variants (mapping user inputs to database keys)
 const gpuModelMap = {
-    "gigabyte rtx 3050 eagle oc": "gigabyte rtx 3050 eagle oc",
-    "rtx 3050 eagle oc": "gigabyte rtx 3050 eagle oc",
-    "gigabyte 3050": "gigabyte rtx 3050 eagle oc",
-    "rtx 3050": "gigabyte rtx 3050 eagle oc",
-    "3050 eagle oc": "gigabyte rtx 3050 eagle oc",
-    "3050": "gigabyte rtx 3050 eagle oc",
-
-    "msi rtx 4060 gaming x": "msi rtx 4060 gaming x",
-    "rtx 4060 gaming x": "msi rtx 4060 gaming x",
-    "msi 4060": "msi rtx 4060 gaming x",
-    "rtx 4060": "msi rtx 4060 gaming x",
-    "4060 gaming x": "msi rtx 4060 gaming x",
-    "4060": "msi rtx 4060 gaming x"
+    "gpu-key-example": "gpu-key-example",
+    "gpu-short-name": "gpu-key-example",
+    "gpu-alias": "gpu-key-example",
+    // Add more variants/aliases here
 };
 
 /**
  * Handles Dialogflow intents related to GPU (Graphics Card) information.
- * @param {object} parameters - The parameters extracted by Dialogflow, including 'gpu-model' and 'requested_detail'.
- * @param {array} inputContexts - The input contexts from Dialogflow request.
- * @param {string} projectId - The Dialogflow project ID.
- * @param {string} sessionId - The Dialogflow session ID.
- * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('     [GPU Handler] Called.');
-    console.log('     [GPU Handler] Received parameters:', parameters);
-    console.log('     [GPU Handler] Received inputContexts:', inputContexts);
+    console.log('   [GPU Handler] Called.');
+    console.log('   [GPU Handler] Received parameters:', parameters);
+    console.log('   [GPU Handler] Received inputContexts:', inputContexts);
 
     let gpuModelRaw = parameters["gpu-model"];
-    const requestedDetail = parameters.requested_detail;
+    const requestedDetail = parameters['gpu-detail'];
 
     let gpuModelKey;
     if (gpuModelRaw) {
         const lowerCaseRaw = gpuModelRaw.toLowerCase().trim();
         gpuModelKey = gpuModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
-    
+
     if (!gpuModelKey && inputContexts && inputContexts.length > 0) {
         const gpuContext = inputContexts.find(context => context.name.endsWith('/contexts/gpu_details_context'));
         if (gpuContext && gpuContext.parameters && gpuContext.parameters['gpu-model']) {
@@ -66,7 +42,7 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
             const lowerCaseContextRaw = contextGpuModelRaw.toLowerCase().trim();
             gpuModelKey = gpuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!gpuModelRaw) { gpuModelRaw = contextGpuModelRaw; }
-            console.log('     [GPU Handler] Retrieved gpu-model from context:', gpuModelKey);
+            console.log('   [GPU Handler] Retrieved gpu-model from context:', gpuModelKey);
         }
     }
 
@@ -76,18 +52,17 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
     const gpu = gpuDatabase[gpuModelKey];
 
     if (gpu) {
-        if (requestedDetail && gpu[requestedDetail] !== undefined) { // Corrected check
+        if (requestedDetail && gpu[requestedDetail]) {
             fulfillmentText = `For the ${gpu.name}, the ${requestedDetail} is: ${gpu[requestedDetail]}.`;
-            console.log(`     [GPU Handler] Responding with specific detail: ${requestedDetail}`);
+            console.log(`   [GPU Handler] Responding with specific detail: ${requestedDetail}`);
         } else if (requestedDetail) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${gpu.name}.`;
-            console.log(`     [GPU Handler] Requested detail "${requestedDetail}" not found for ${gpu.name}.`);
+            console.log(`   [GPU Handler] Requested detail "${requestedDetail}" not found for ${gpu.name}.`);
         } else {
-            // General info if no specific detail was requested
             let response = `The ${gpu.name} has ${gpu.vram} VRAM, a boost clock of ${gpu.clockSpeed}, and consumes approximately ${gpu.powerConsumption}. `;
-            response += `It uses a ${gpu.slotType} slot. The estimated price is ${gpu.price}. Compatibility: ${gpu.compatibility}`; // Added price
+            response += `It uses a ${gpu.slotType} slot. Compatibility: ${gpu.compatibility}`;
             fulfillmentText = response;
-            console.log('     [GPU Handler] Responding with general info.');
+            console.log('   [GPU Handler] Responding with general info.');
         }
 
         if (gpuModelRaw) {
@@ -98,16 +73,16 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
                     'gpu-model': gpuModelRaw
                 }
             });
-            console.log('     [GPU Handler] Set output context: gpu_details_context');
+            console.log('   [GPU Handler] Set output context: gpu_details_context');
         } else {
-            console.warn('     [GPU Handler] WARNING: gpuModelRaw was empty, could not set gpu_details_context.');
+            console.warn('   [GPU Handler] WARNING: gpuModelRaw was empty, could not set gpu_details_context.');
         }
     } else {
-        console.log(`     [GPU Handler] GPU model "${gpuModelRaw}" (key: "${gpuModelKey}") not found in database.`);
+        console.log(`   [GPU Handler] GPU model "${gpuModelRaw}" (key: "${gpuModelKey}") not found in database.`);
     }
 
-    console.log('     [GPU Handler] Fulfillment Text:', fulfillmentText);
-    console.log('     [GPU Handler] Output Contexts:', outputContexts);
+    console.log('   [GPU Handler] Fulfillment Text:', fulfillmentText);
+    console.log('   [GPU Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
