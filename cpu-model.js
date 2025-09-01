@@ -186,7 +186,7 @@ function handleCPUIntent(intent, parameters) {
 
     // Get the raw CPU model value from Dialogflow's parameters.
     const cpuModelRaw = parameters["cpu-model"];
-    const requestedDetail = parameters['detail-type']; // NEW: Get the detail-type parameter
+    const requestedDetail = parameters['cpu_detail_type']; // NEW: Get the detail-type parameter
 
     if (!cpuModelRaw) {
         console.warn('   [CPU Handler] WARNING: "cpu-model" parameter is missing. Dialogflow did not extract the CPU model.');
