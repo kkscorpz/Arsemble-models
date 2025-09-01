@@ -48,7 +48,7 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
     console.log('[GPU Handler] Received parameters:', parameters);
     console.log('[GPU Handler] Received inputContexts:', inputContexts);
 
-    let gpuModelRaw = parameters["gpu-model"];
+    let gpuModelRaw = parameters["Gpu-model"];
     const requestedDetail = parameters['gpu-detail'];
 
     let gpuModelKey;
@@ -60,8 +60,8 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
 
     if (!gpuModelKey && inputContexts && inputContexts.length > 0) {
         const gpuContext = inputContexts.find(context => context.name.endsWith('/contexts/gpu_details_context'));
-        if (gpuContext && gpuContext.parameters && gpuContext.parameters['gpu-model']) {
-            const contextGpuModelRaw = gpuContext.parameters['gpu-model'];
+        if (gpuContext && gpuContext.parameters && gpuContext.parameters['Gpu-model']) {
+            const contextGpuModelRaw = gpuContext.parameters['Gpu-model'];
             const lowerCaseContextRaw = contextGpuModelRaw.toLowerCase().trim();
             gpuModelKey = gpuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!gpuModelRaw) gpuModelRaw = contextGpuModelRaw;
