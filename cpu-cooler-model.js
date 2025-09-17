@@ -1,4 +1,5 @@
 // cpu-cooler-model.js
+
 const cpuCoolerDatabase = {
     "coolmoon aosor s400": {
         name: "COOLMOON AOSOR S400",
@@ -6,7 +7,8 @@ const cpuCoolerDatabase = {
         fanSize: "120mm",
         tdp: "Up to 130W",
         rgb: "Addressable RGB",
-        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4 sockets. Make sure your case has enough clearance for its height (approx. 155mm). The RGB requires a compatible 3-pin 5V ARGB header or controller."
+        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4 sockets. Make sure your case has enough clearance for its height (approx. 155mm). The RGB requires a compatible 3-pin 5V ARGB header or controller.",
+        price: "₱1,200"
     },
     "cooler master hyper 212 black edition": {
         name: "Cooler Master Hyper 212 Black Edition",
@@ -14,7 +16,8 @@ const cpuCoolerDatabase = {
         fanSize: "120mm",
         tdp: "Up to 150W",
         rgb: "No integrated RGB",
-        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 (with adapter kit) sockets. Check case clearance (approx. 159mm height). Reliable and quiet cooling for mid-range CPUs."
+        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 (with adapter kit) sockets. Check case clearance (approx. 159mm height). Reliable and quiet cooling for mid-range CPUs.",
+        price: "₱2,500"
     },
     "thermalright peerless assassin 120 se": {
         name: "Thermalright Peerless Assassin 120 SE",
@@ -22,38 +25,36 @@ const cpuCoolerDatabase = {
         fanSize: "2x 120mm",
         tdp: "Up to 245W",
         rgb: "No RGB",
-        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 sockets. Excellent performance for high-end CPUs. Ensure significant case clearance (approx. 155mm height) and check RAM clearance, especially with tall heatspreaders."
+        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 sockets. Excellent performance for high-end CPUs. Ensure significant case clearance (approx. 155mm height) and check RAM clearance, especially with tall heatspreaders.",
+        price: "₱3,000"
     },
     "deepcool le500 marrs": {
         name: "Deepcool LE500 MARRS",
         type: "AIO Liquid Cooler",
-        radiatorSize: "240mm", // Specific for AIOs
+        radiatorSize: "240mm",
         tdp: "Up to 220W",
         rgb: "No RGB (has blue LED pump)",
-        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 sockets. Requires a case that can mount a 240mm radiator (top or front). Ensure your case has enough clearance for the radiator and fans."
+        compatibility: "Supports Intel LGA 1700/1200/115X and AMD AM4/AM5 sockets. Requires a case that can mount a 240mm radiator (top or front). Ensure your case has enough clearance for the radiator and fans.",
+        price: "₱4,500"
     }
 };
 
-// CPU Cooler Model Variants (mapping user inputs to database keys)
 const cpuCoolerModelMap = {
     "coolmoon aosor s400": "coolmoon aosor s400",
     "aosor s400": "coolmoon aosor s400",
     "coolmoon s400": "coolmoon aosor s400",
     "s400 cpu cooler": "coolmoon aosor s400",
     "coolmoon aosor": "coolmoon aosor s400",
-
     "cooler master hyper 212 black edition": "cooler master hyper 212 black edition",
     "hyper 212 black edition": "cooler master hyper 212 black edition",
     "cm hyper 212": "cooler master hyper 212 black edition",
     "hyper 212": "cooler master hyper 212 black edition",
     "cooler master hyper 212": "cooler master hyper 212 black edition",
-
-    "thermalright peerless assassin 120 se": "thermalright peerless assassin 120 se", // Corrected typo here
-    "peerless assassin 120 se": "thermalright peerless assassin 120 se", // Corrected typo here
-    "thermalright pa120 se": "thermalright peerless assassin 120 se", // Corrected typo here
-    "pa120 se": "thermalright peerless assassin 120 se", // Corrected typo here
-    "peerless assassin": "thermalright peerless assassin 120 se", // Corrected typo here
-
+    "thermalright peerless assassin 120 se": "thermalright peerless assassin 120 se",
+    "peerless assassin 120 se": "thermalright peerless assassin 120 se",
+    "thermalright pa120 se": "thermalright peerless assassin 120 se",
+    "pa120 se": "thermalright peerless assassin 120 se",
+    "peerless assassin": "thermalright peerless assassin 120 se",
     "deepcool le500 marrs": "deepcool le500 marrs",
     "le500 marrs": "deepcool le500 marrs",
     "deepcool le500": "deepcool le500 marrs",
@@ -74,23 +75,22 @@ function handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId) 
     console.log('    [CPU Cooler Handler] Received parameters:', parameters);
     console.log('    [CPU Cooler Handler] Received inputContexts:', inputContexts);
 
-    let cpuCoolerModelRaw = parameters["cpu-cooler-model"]; // Expecting 'cpu-cooler-model' from Dialogflow
-    const requestedDetail = parameters["cpu-cooler-detail"]; // Expecting 'cpu-cooler-detail' for specific requests
+    let cpuCoolerModelRaw = parameters["cpu-cooler-model"];
+    const requestedDetail = parameters["cpu-cooler-detail"];
 
     let cpuCoolerModelKey;
     if (cpuCoolerModelRaw) {
         const lowerCaseRaw = cpuCoolerModelRaw.toLowerCase().trim();
         cpuCoolerModelKey = cpuCoolerModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
-
-    // Try to get cpu-cooler-model from context if not provided in current turn
+    
     if (!cpuCoolerModelKey && inputContexts && inputContexts.length > 0) {
         const cpuCoolerContext = inputContexts.find(context => context.name.endsWith('/contexts/cpu_cooler_details_context'));
         if (cpuCoolerContext && cpuCoolerContext.parameters && cpuCoolerContext.parameters['cpu-cooler-model']) {
             const contextCpuCoolerModelRaw = cpuCoolerContext.parameters['cpu-cooler-model'];
             const lowerCaseContextRaw = contextCpuCoolerModelRaw.toLowerCase().trim();
             cpuCoolerModelKey = cpuCoolerModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!cpuCoolerModelRaw) { cpuCoolerModelRaw = contextCpuCoolerModelRaw; } // Update raw if it was empty
+            if (!cpuCoolerModelRaw) { cpuCoolerModelRaw = contextCpuCoolerModelRaw; }
             console.log('    [CPU Cooler Handler] Retrieved cpu-cooler-model from context:', cpuCoolerModelKey);
         }
     }
@@ -101,15 +101,13 @@ function handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId) 
     const cooler = cpuCoolerDatabase[cpuCoolerModelKey];
 
     if (cooler) {
-        // Handle specific detail request
-        if (requestedDetail && cooler[requestedDetail]) {
+        if (requestedDetail && cooler[requestedDetail] !== undefined) {
             fulfillmentText = `For the ${cooler.name}, the ${requestedDetail} is: ${cooler[requestedDetail]}.`;
             console.log(`    [CPU Cooler Handler] Responding with specific detail: ${requestedDetail}`);
         } else if (requestedDetail) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${cooler.name}.`;
             console.log(`    [CPU Cooler Handler] Requested detail "${requestedDetail}" not found for ${cooler.name}.`);
         } else {
-            // General info if no specific detail was requested
             let response = `The ${cooler.name} is a ${cooler.type}. `;
 
             if (cooler.type.includes("Air Cooler")) {
@@ -119,13 +117,13 @@ function handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId) 
             }
 
             response += `It features ${cooler.rgb}. `;
+            response += `The estimated price is ${cooler.price}. `;
             response += `Compatibility: ${cooler.compatibility}`;
             fulfillmentText = response;
             console.log('    [CPU Cooler Handler] Responding with general info.');
         }
 
-        // Set the output context to remember the CPU Cooler model for follow-up questions
-        if (cpuCoolerModelRaw) { // Ensure model is available to store in context
+        if (cpuCoolerModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/cpu_cooler_details_context`,
                 lifespanCount: 5,
