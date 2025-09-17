@@ -1,6 +1,5 @@
 // compatibility-handler.js
 
-// Database for motherboard form factors and their compatibility.
 const motherboardDatabase = {
     "atx": {
         name: "ATX",
@@ -12,7 +11,6 @@ const motherboardDatabase = {
     }
 };
 
-// Database for CPU sockets and their compatible CPUs.
 const socketDatabase = {
     "am4": {
         name: "AM4",
@@ -33,49 +31,64 @@ const socketDatabase = {
 
 /**
  * Handles Dialogflow intents related to motherboard and CPU socket compatibility.
- * @param {object} parameters - The parameters extracted by Dialogflow, including 'motherboard-form-factor' and 'cpu-socket'.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - The parameters extracted by Dialogflow.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object with fulfillmentText and outputContexts.
  */
-function handleCompatibilityIntent(parameters) {
+function handleCompatibilityIntent(parameters, inputContexts, projectId, sessionId) {
     console.log('[Compatibility Handler] Called.');
     console.log('[Compatibility Handler] Received parameters:', parameters);
 
-    const formFactor = parameters['motherboard-detail']?.toLowerCase();
-    const socket = parameters['cpu_detail_type']?.toLowerCase();
+    const formFactor = parameters['motherboard-form-factor']?.toLowerCase();
+    const socket = parameters['cpu-socket']?.toLowerCase() || parameters['cpu_detail_type.original']?.toLowerCase(); 
+    
+    let fulfillmentText = "I'm sorry, I don't have information on that specific compatibility question. Please try asking in a different way.";
+    let outputContexts = [];
 
-    // Handle requests for form factor definitions
+    // --- Scenario 1: User asks for form factor details (e.g., "what is ATX?") ---
     if (formFactor) {
         const factorInfo = motherboardDatabase[formFactor];
         if (factorInfo) {
-            return `A/An ${factorInfo.name} motherboard is ${factorInfo.description}`;
+            fulfillmentText = `A/An ${factorInfo.name} motherboard is ${factorInfo.description}`;
         }
     }
 
-    // Handle requests for socket definitions or compatible CPUs
+    // --- Scenario 2: User asks for socket details (e.g., "what is AM5?" or "what is LGA1700?") ---
     if (socket) {
         const socketInfo = socketDatabase[socket];
         if (socketInfo) {
-            // Check if the user is asking for compatibility
-            const intentDisplayName = parameters['intent_name']; // You might need to adjust how you get the intent name
-            if (intentDisplayName === 'Get_Compatibility_Details' && parameters['subject'] === 'cpu-compatibility') {
-                return `The ${socketInfo.name} socket is compatible with the following CPUs: ${socketInfo.compatibleCPUs.join(", ")}.`;
+            if (parameters['detail_type'] === 'compatibleCPUs') {
+                 fulfillmentText = `The ${socketInfo.name} socket is compatible with the following CPUs: ${socketInfo.compatibleCPUs.join(", ")}.`;
+            } else {
+                fulfillmentText = `The ${socketInfo.name} socket is ${socketInfo.description}`;
             }
-            // General definition of the socket
-            return `The ${socketInfo.name} socket is ${socketInfo.description}`;
         }
     }
 
-    // Handle the difference between ATX and mATX
-    if (formFactor === 'atx' && parameters['compare-form-factor'] === 'matx') {
-        return `The primary difference between ATX and mATX is size. ATX boards are standard and larger, offering more expansion slots, while mATX boards are more compact, fitting in smaller cases but with fewer slots.`;
+    // --- Scenario 3: User asks for a comparison ---
+    if (parameters['form-factor-1'] && parameters['form-factor-2']) {
+        const ff1 = parameters['form-factor-1'].toLowerCase();
+        const ff2 = parameters['form-factor-2'].toLowerCase();
+        if ((ff1 === 'atx' && ff2 === 'matx') || (ff1 === 'matx' && ff2 === 'atx')) {
+            fulfillmentText = `The primary difference between ATX and mATX is size. ATX boards are standard and larger, offering more expansion slots, while mATX boards are more compact, fitting in smaller cases but with fewer slots.`;
+        } else {
+            fulfillmentText = "I can't compare those form factors right now.";
+        }
     }
 
-    // Handle the difference between sockets
-    if (socket === 'am5' && parameters['compare-socket'] === 'am4') {
-        return `The AM5 socket is AMD's newest platform, exclusively for DDR5 RAM and newer Ryzen CPUs (7000 series and up), while the AM4 socket is an older platform for DDR4 RAM and older Ryzen CPUs (up to 5000 series).`;
+    if (parameters['socket-1'] && parameters['socket-2']) {
+        const s1 = parameters['socket-1'].toLowerCase();
+        const s2 = parameters['socket-2'].toLowerCase();
+        if ((s1 === 'am5' && s2 === 'am4') || (s1 === 'am4' && s2 === 'am5')) {
+             fulfillmentText = `The AM5 socket is AMD's newest platform, exclusively for DDR5 RAM and newer Ryzen CPUs (7000 series and up), while the AM4 socket is an older platform for DDR4 RAM and older Ryzen CPUs (up to 5000 series).`;
+        } else {
+            fulfillmentText = "I can't compare those sockets right now.";
+        }
     }
 
-    return "I'm sorry, I don't have information on that specific compatibility question. Please try asking in a different way, such as 'What is AM5?' or 'What CPUs are compatible with LGA1700?'";
+    return { fulfillmentText, outputContexts };
 }
 
 module.exports = { handleCompatibilityIntent };
