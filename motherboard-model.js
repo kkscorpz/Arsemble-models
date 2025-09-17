@@ -130,9 +130,9 @@ const motherboardModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('     [MB Handler] Called.');
-    console.log('     [MB Handler] Received parameters:', parameters);
-    console.log('     [MB Handler] Received inputContexts:', inputContexts);
+    console.log('    [MB Handler] Called.');
+    console.log('    [MB Handler] Received parameters:', parameters);
+    console.log('    [MB Handler] Received inputContexts:', inputContexts);
 
     let motherboardModelRaw = parameters["motherboard-model"];
     const requestedDetail = parameters["motherboard-detail"];
@@ -151,7 +151,7 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
             const lowerCaseContextRaw = contextMbModelRaw.toLowerCase().trim();
             motherboardModelKey = motherboardModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!motherboardModelRaw) { motherboardModelRaw = contextMbModelRaw; }
-            console.log('     [MB Handler] Retrieved motherboard-model from context:', motherboardModelKey);
+            console.log('    [MB Handler] Retrieved motherboard-model from context:', motherboardModelKey);
         }
     }
 
@@ -165,11 +165,11 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
         if (requestedDetail) {
             let detailValue = mb[requestedDetail];
             if (detailValue !== undefined) {
-                 fulfillmentText = `For the ${mb.name}, the ${requestedDetail} is: ${detailValue}.`;
-                 console.log(`     [MB Handler] Responding with specific detail: ${requestedDetail}`);
+                fulfillmentText = `For the ${mb.name}, the ${requestedDetail} is: ${detailValue}.`;
+                console.log(`    [MB Handler] Responding with specific detail: ${requestedDetail}`);
             } else {
-                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${mb.name}.`;
-                 console.log(`     [MB Handler] Requested detail "${requestedDetail}" not found for ${mb.name}.`);
+                fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${mb.name}.`;
+                console.log(`    [MB Handler] Requested detail "${requestedDetail}" not found for ${mb.name}.`);
             }
         } else {
             // General info if no specific detail was requested
@@ -179,7 +179,7 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
             response += `Compatibility: ${mb.compatibility}. `;
             response += `The estimated price is ${mb.price}.`; // Added price to the general response
             fulfillmentText = response;
-            console.log('     [MB Handler] Responding with general info.');
+            console.log('    [MB Handler] Responding with general info.');
         }
 
         // Set the output context to remember the Motherboard model for follow-up questions
@@ -191,17 +191,17 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
                     'motherboard-model': motherboardModelRaw
                 }
             });
-            console.log('     [MB Handler] Set output context: motherboard_details_context');
+            console.log('    [MB Handler] Set output context: motherboard_details_context');
         } else {
-            console.warn('     [MB Handler] WARNING: motherboardModelRaw was empty, could not set motherboard_details_context.');
+            console.warn('    [MB Handler] WARNING: motherboardModelRaw was empty, could not set motherboard_details_context.');
         }
     } else {
-        console.log(`     [MB Handler] Motherboard model "${motherboardModelRaw}" (key: "${motherboardModelKey}") not found in database.`);
+        console.log(`    [MB Handler] Motherboard model "${motherboardModelRaw}" (key: "${motherboardModelKey}") not found in database.`);
     }
 
-    console.log('     [MB Handler] Fulfillment Text:', fulfillmentText);
-    console.log('     [MB Handler] Output Contexts:', outputContexts);
+    console.log('    [MB Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [MB Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
-module.exports = { handleMotherboardIntent };   
+module.exports = { handleMotherboardIntent };
