@@ -1,4 +1,4 @@
-// CPU Cooler database
+// cpu-cooler-model.js
 const cpuCoolerDatabase = {
     "coolmoon aosor s400": {
         name: "COOLMOON AOSOR S400",
@@ -48,11 +48,11 @@ const cpuCoolerModelMap = {
     "hyper 212": "cooler master hyper 212 black edition",
     "cooler master hyper 212": "cooler master hyper 212 black edition",
 
-    "thermalright peerless assassin 120 se": "thermalright peereless assassin 120 se",
-    "peerless assassin 120 se": "thermalright peereless assassin 120 se",
-    "thermalright pa120 se": "thermalright peereless assassin 120 se",
-    "pa120 se": "thermalright peereless assassin 120 se",
-    "peerless assassin": "thermalright peereless assassin 120 se",
+    "thermalright peerless assassin 120 se": "thermalright peerless assassin 120 se", // Corrected typo here
+    "peerless assassin 120 se": "thermalright peerless assassin 120 se", // Corrected typo here
+    "thermalright pa120 se": "thermalright peerless assassin 120 se", // Corrected typo here
+    "pa120 se": "thermalright peerless assassin 120 se", // Corrected typo here
+    "peerless assassin": "thermalright peerless assassin 120 se", // Corrected typo here
 
     "deepcool le500 marrs": "deepcool le500 marrs",
     "le500 marrs": "deepcool le500 marrs",
@@ -63,48 +63,87 @@ const cpuCoolerModelMap = {
 
 /**
  * Handles Dialogflow intents related to CPU Cooler information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'cpu-cooler-model' and 'cpu-cooler-detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
-function handleCPUCoolerIntent(intent, parameters) {
-    console.log('  [CPU Cooler Handler] Called for intent:', intent);
-    console.log('  [CPU Cooler Handler] Received parameters:', parameters);
+function handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId) {
+    console.log('    [CPU Cooler Handler] Called.');
+    console.log('    [CPU Cooler Handler] Received parameters:', parameters);
+    console.log('    [CPU Cooler Handler] Received inputContexts:', inputContexts);
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'cooler_model' (with an underscore)
-    const coolerModelRaw = parameters["cooler-model"];
+    let cpuCoolerModelRaw = parameters["cpu-cooler-model"]; // Expecting 'cpu-cooler-model' from Dialogflow
+    const requestedDetail = parameters["cpu-cooler-detail"]; // Expecting 'cpu-cooler-detail' for specific requests
 
-    if (!coolerModelRaw) {
-        console.warn('  [CPU Cooler Handler] WARNING: "cooler_model" parameter is missing in the request.');
-        return 'Please specify the CPU Cooler model you are interested in (e.g., "COOLMOON AOSOR S400").';
+    let cpuCoolerModelKey;
+    if (cpuCoolerModelRaw) {
+        const lowerCaseRaw = cpuCoolerModelRaw.toLowerCase().trim();
+        cpuCoolerModelKey = cpuCoolerModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    const modelKey = cpuCoolerModelMap[coolerModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [CPU Cooler Handler] WARNING: No matching model key found in cpuCoolerModelMap for "${coolerModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the CPU Cooler model "${coolerModelRaw}".`;
+    // Try to get cpu-cooler-model from context if not provided in current turn
+    if (!cpuCoolerModelKey && inputContexts && inputContexts.length > 0) {
+        const cpuCoolerContext = inputContexts.find(context => context.name.endsWith('/contexts/cpu_cooler_details_context'));
+        if (cpuCoolerContext && cpuCoolerContext.parameters && cpuCoolerContext.parameters['cpu-cooler-model']) {
+            const contextCpuCoolerModelRaw = cpuCoolerContext.parameters['cpu-cooler-model'];
+            const lowerCaseContextRaw = contextCpuCoolerModelRaw.toLowerCase().trim();
+            cpuCoolerModelKey = cpuCoolerModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!cpuCoolerModelRaw) { cpuCoolerModelRaw = contextCpuCoolerModelRaw; } // Update raw if it was empty
+            console.log('    [CPU Cooler Handler] Retrieved cpu-cooler-model from context:', cpuCoolerModelKey);
+        }
     }
 
-    const cooler = cpuCoolerDatabase[modelKey];
-    if (!cooler) {
-        console.error(`  [CPU Cooler Handler] ERROR: No CPU Cooler data found in cpuCoolerDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${coolerModelRaw}". The data might be missing or incorrect.`;
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that CPU Cooler model.';
+    let outputContexts = [];
+
+    const cooler = cpuCoolerDatabase[cpuCoolerModelKey];
+
+    if (cooler) {
+        // Handle specific detail request
+        if (requestedDetail && cooler[requestedDetail]) {
+            fulfillmentText = `For the ${cooler.name}, the ${requestedDetail} is: ${cooler[requestedDetail]}.`;
+            console.log(`    [CPU Cooler Handler] Responding with specific detail: ${requestedDetail}`);
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${cooler.name}.`;
+            console.log(`    [CPU Cooler Handler] Requested detail "${requestedDetail}" not found for ${cooler.name}.`);
+        } else {
+            // General info if no specific detail was requested
+            let response = `The ${cooler.name} is a ${cooler.type}. `;
+
+            if (cooler.type.includes("Air Cooler")) {
+                response += `It uses a ${cooler.fanSize} fan and is rated for CPUs up to ${cooler.tdp}. `;
+            } else if (cooler.type.includes("Liquid Cooler")) {
+                response += `It has a ${cooler.radiatorSize} radiator and is rated for CPUs up to ${cooler.tdp}. `;
+            }
+
+            response += `It features ${cooler.rgb}. `;
+            response += `Compatibility: ${cooler.compatibility}`;
+            fulfillmentText = response;
+            console.log('    [CPU Cooler Handler] Responding with general info.');
+        }
+
+        // Set the output context to remember the CPU Cooler model for follow-up questions
+        if (cpuCoolerModelRaw) { // Ensure model is available to store in context
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/cpu_cooler_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'cpu-cooler-model': cpuCoolerModelRaw
+                }
+            });
+            console.log('    [CPU Cooler Handler] Set output context: cpu_cooler_details_context');
+        } else {
+            console.warn('    [CPU Cooler Handler] WARNING: cpuCoolerModelRaw was empty, could not set cpu_cooler_details_context.');
+        }
+    } else {
+        console.log(`    [CPU Cooler Handler] CPU Cooler model "${cpuCoolerModelRaw}" (key: "${cpuCoolerModelKey}") not found in database.`);
     }
 
-    // Construct the detailed response based on the cooler's properties
-    let response = `The ${cooler.name} is a ${cooler.type}. `;
-
-    if (cooler.type.includes("Air Cooler")) {
-        response += `It uses a ${cooler.fanSize} fan and is rated for CPUs up to ${cooler.tdp}. `;
-    } else if (cooler.type.includes("Liquid Cooler")) {
-        response += `It has a ${cooler.radiatorSize} radiator and is rated for CPUs up to ${cooler.tdp}. `;
-    }
-
-    response += `It features ${cooler.rgb}. `;
-    response += `Compatibility: ${cooler.compatibility}`;
-
-    console.log('  [CPU Cooler Handler] Generated response:', response);
-    return response;
+    console.log('    [CPU Cooler Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [CPU Cooler Handler] Output Contexts:', outputContexts);
+    return { fulfillmentText, outputContexts };
 }
 
 module.exports = { handleCPUCoolerIntent };

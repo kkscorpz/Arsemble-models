@@ -1,4 +1,4 @@
-// PSU database
+// psu.js
 const psuDatabase = {
     "corsair rm850x": {
         name: "Corsair RM850x",
@@ -77,41 +77,80 @@ const psuModelMap = {
 
 /**
  * Handles Dialogflow intents related to PSU (Power Supply Unit) information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'psu-model' and 'psu-detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
-function handlePSUIntent(intent, parameters) {
-    console.log('  [PSU Handler] Called for intent:', intent);
-    console.log('  [PSU Handler] Received parameters:', parameters);
+function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
+    console.log('    [PSU Handler] Called.');
+    console.log('    [PSU Handler] Received parameters:', parameters);
+    console.log('    [PSU Handler] Received inputContexts:', inputContexts);
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'psu_model' (with an underscore)
-    const psuModelRaw = parameters["psu-model"];
+    let psuModelRaw = parameters["psu-model"]; // Expecting 'psu-model' from Dialogflow
+    const requestedDetail = parameters["psu-detail"]; // Expecting 'psu-detail' for specific requests
 
-    if (!psuModelRaw) {
-        console.warn('  [PSU Handler] WARNING: "psu_model" parameter is missing in the request.');
-        return 'Please specify the Power Supply Unit model you are interested in (e.g., "Corsair RM850x").';
+    let psuModelKey;
+    if (psuModelRaw) {
+        const lowerCaseRaw = psuModelRaw.toLowerCase().trim();
+        psuModelKey = psuModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    const modelKey = psuModelMap[psuModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [PSU Handler] WARNING: No matching model key found in psuModelMap for "${psuModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the PSU model "${psuModelRaw}".`;
+    // Try to get psu-model from context if not provided in current turn
+    if (!psuModelKey && inputContexts && inputContexts.length > 0) {
+        const psuContext = inputContexts.find(context => context.name.endsWith('/contexts/psu_details_context'));
+        if (psuContext && psuContext.parameters && psuContext.parameters['psu-model']) {
+            const contextPsuModelRaw = psuContext.parameters['psu-model'];
+            const lowerCaseContextRaw = contextPsuModelRaw.toLowerCase().trim();
+            psuModelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!psuModelRaw) { psuModelRaw = contextPsuModelRaw; } // Update raw if it was empty
+            console.log('    [PSU Handler] Retrieved psu-model from context:', psuModelKey);
+        }
     }
 
-    const psu = psuDatabase[modelKey];
-    if (!psu) {
-        console.error(`  [PSU Handler] ERROR: No PSU data found in psuDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${psuModelRaw}". The data might be missing or incorrect.`;
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that Power Supply Unit model.';
+    let outputContexts = [];
+
+    const psu = psuDatabase[psuModelKey];
+
+    if (psu) {
+        // Handle specific detail request
+        if (requestedDetail && psu[requestedDetail]) {
+            fulfillmentText = `For the ${psu.name}, the ${requestedDetail} is: ${psu[requestedDetail]}.`;
+            console.log(`    [PSU Handler] Responding with specific detail: ${requestedDetail}`);
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${psu.name}.`;
+            console.log(`    [PSU Handler] Requested detail "${requestedDetail}" not found for ${psu.name}.`);
+        } else {
+            // General info if no specific detail was requested
+            let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
+            response += `It typically includes cables for ${psu.cables}. `;
+            response += `Compatibility: ${psu.compatibility}`;
+            fulfillmentText = response;
+            console.log('    [PSU Handler] Responding with general info.');
+        }
+
+        // Set the output context to remember the PSU model for follow-up questions
+        if (psuModelRaw) { // Ensure model is available to store in context
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/psu_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'psu-model': psuModelRaw
+                }
+            });
+            console.log('    [PSU Handler] Set output context: psu_details_context');
+        } else {
+            console.warn('    [PSU Handler] WARNING: psuModelRaw was empty, could not set psu_details_context.');
+        }
+    } else {
+        console.log(`    [PSU Handler] PSU model "${psuModelRaw}" (key: "${psuModelKey}") not found in database.`);
     }
 
-    // Construct the detailed response
-    let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
-    response += `It typically includes cables for ${psu.cables}. `;
-    response += `Compatibility: ${psu.compatibility}`;
-
-    console.log('  [PSU Handler] Generated response:', response);
-    return response;
+    console.log('    [PSU Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [PSU Handler] Output Contexts:', outputContexts);
+    return { fulfillmentText, outputContexts };
 }
 
 module.exports = { handlePSUIntent };

@@ -1,4 +1,4 @@
-// RAM database
+// ram-model.js
 const ramDatabase = {
     "kingston fury beast ddr4": {
         name: "Kingston FURY Beast DDR4",
@@ -6,7 +6,7 @@ const ramDatabase = {
         type: "DDR4",
         speed: "3200 MHz",
         voltage: "1.35 V",
-        compatibility: "Requires motherboard with DDR4 DIMM slots (288-pin) supporting 1.35V and 3200 MHz. Check motherboard QVL for compatibility."
+        compatibility: "Requires motherboard with DDR4 DIMM slots (288-pin) supporting 1.35V and 3200 MHz. Check motherboard QVL (Qualified Vendor List) for guaranteed compatibility."
     },
     "kingston hyperx fury ddr3": {
         name: "Kingston HyperX FURY DDR3",
@@ -37,64 +37,71 @@ const ramDatabase = {
         capacity: "8GB",
         type: "DDR4",
         speed: "3200 MHz",
-        voltage: "1.2 V",
+        voltage: "1.2 V", 
         compatibility: "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Matched pairs recommended for dual-channel. Always check motherboard QVL."
     }
 };
 
-// RAM Model Variants (mapping user inputs to database keys)
-// You might want to expand this more fully as you have for CPU
 const ramModelMap = {
     "kingston fury beast ddr4": "kingston fury beast ddr4",
     "fury beast ddr4": "kingston fury beast ddr4",
+    "kingston fury beast": "kingston fury beast ddr4",
+    "beast ddr4": "kingston fury beast ddr4",
     "kingston hyperx fury ddr3": "kingston hyperx fury ddr3",
     "hyperx fury ddr3": "kingston hyperx fury ddr3",
     "hkc pc ddr4-3200 dimm": "hkc pc ddr4-3200 dimm",
+    "hkc 3200 dimm": "hkc pc ddr4-3200 dimm",
     "hkcmemory hu40 ddr4 (16gb)": "hkcmemory hu40 ddr4 (16gb)",
-    "hkcmemory hu40 ddr4 (8gb)": "hkcmemory hu40 ddr4 (8gb)",
-    // Add more common user input variations here to map to your database keys
-    "hkc 3200 dimm": "hkc pc ddr4-3200 dimm", // Example of a shorter variant
     "hu40 16gb": "hkcmemory hu40 ddr4 (16gb)",
+    "hkcmemory hu40 ddr4 (8gb)": "hkcmemory hu40 ddr4 (8gb)",
     "hu40 8gb": "hkcmemory hu40 ddr4 (8gb)"
 };
 
+function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
+    let ramModelRaw = parameters["Ram-model"];
+    const requestedDetail = parameters.requested_detail;
 
-/**
- * Handles Dialogflow intents related to RAM information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
- */
-function handleRAMIntent(intent, parameters) {
-    console.log('  [RAM Handler] Called for intent:', intent);
-    console.log('  [RAM Handler] Received parameters:', parameters);
-
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends (lowercase 'ram-model')
-    const ramModelRaw = parameters["ram-model"];
-
-    if (!ramModelRaw) {
-        console.warn('  [RAM Handler] WARNING: "ram-model" parameter is missing in the request.');
-        return 'Please specify the RAM model you are interested in (e.g., "Kingston FURY Beast DDR4").';
+    let ramModelKey;
+    if (ramModelRaw) {
+        const lowerCaseRaw = ramModelRaw.toLowerCase().trim();
+        ramModelKey = ramModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    const modelKey = ramModelMap[ramModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [RAM Handler] WARNING: No matching model key found in ramModelMap for "${ramModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the RAM model "${ramModelRaw}".`;
+    if (!ramModelKey && inputContexts && inputContexts.length > 0) {
+        const ramContext = inputContexts.find(context => context.name.endsWith('/contexts/ram_details_context'));
+        if (ramContext && ramContext.parameters && ramContext.parameters['ram-model']) {
+            const contextRamModelRaw = ramContext.parameters['ram-model'];
+            const lowerCaseContextRaw = contextRamModelRaw.toLowerCase().trim();
+            ramModelKey = ramModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!ramModelRaw) { ramModelRaw = contextRamModelRaw; }
+        }
     }
 
-    const ram = ramDatabase[modelKey];
-    if (!ram) {
-        console.error(`  [RAM Handler] ERROR: No RAM data found in ramDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${ramModelRaw}". The data might be missing or incorrect.`;
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that RAM model.';
+    let outputContexts = [];
+
+    const ram = ramDatabase[ramModelKey];
+
+    if (ram) {
+        if (requestedDetail && ram[requestedDetail]) {
+            fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${ram[requestedDetail]}.`;
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
+        } else {
+            fulfillmentText = `The ${ram.name} RAM comes in ${ram.capacity} capacities, is a ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. Compatibility: ${ram.compatibility}`;
+        }
+
+        if (ramModelRaw) {
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/ram_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'ram-model': ramModelRaw
+                }
+            });
+        }
     }
-
-    // Construct the detailed response
-    let response = `The ${ram.name} RAM comes in ${ram.capacity}, is a ${ram.type} type, runs at ${ram.speed}, and uses ${ram.voltage}. `;
-    response += `Compatibility: ${ram.compatibility}`;
-
-    console.log('  [RAM Handler] Generated response:', response);
-    return response;
+    return { fulfillmentText, outputContexts };
 }
 
-module.exports = { handleRAMIntent };
+module.exports = { ramDatabase, ramModelMap, handleRAMIntent };

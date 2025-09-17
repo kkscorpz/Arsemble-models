@@ -1,4 +1,4 @@
-// Case Fan database
+// case-fan-model.js
 const caseFanDatabase = {
     "coolmoon yx120": {
         name: "COOLMOON YX120",
@@ -52,46 +52,84 @@ const caseFanModelMap = {
 
 /**
  * Handles Dialogflow intents related to Case Fan information.
- * @param {string} intent - The display name of the intent.
- * @param {object} parameters - The parameters extracted by Dialogflow.
- * @returns {string} The fulfillment text response.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'case-fan-model' and 'requested_detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
+ * @param {string} projectId - The Dialogflow project ID.
+ * @param {string} sessionId - The Dialogflow session ID.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
-function handleCaseFanIntent(intent, parameters) {
-    console.log('  [Case Fan Handler] Called for intent:', intent);
-    console.log('  [Case Fan Handler] Received parameters:', parameters);
+function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
+    console.log('   [Case Fan Handler] Called.');
+    console.log('   [Case Fan Handler] Received parameters:', parameters);
+    console.log('   [Case Fan Handler] Received inputContexts:', inputContexts);
 
-    // CRITICAL: Access the parameter using the exact name Dialogflow sends, which is 'case_fan_model' (with an underscore)
-    const caseFanModelRaw = parameters["case-fan-model"];
+    let caseFanModelRaw = parameters["case-fan-model"]; // This is the exact parameter name from Dialogflow
+    const requestedDetail = parameters.requested_detail;
 
-    if (!caseFanModelRaw) {
-        console.warn('  [Case Fan Handler] WARNING: "case_fan_model" parameter is missing in the request.');
-        return 'Please specify the Case Fan model you are interested in (e.g., "COOLMOON YX120").';
+    let caseFanModelKey;
+    if (caseFanModelRaw) {
+        const lowerCaseRaw = caseFanModelRaw.toLowerCase().trim();
+        caseFanModelKey = caseFanModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    const modelKey = caseFanModelMap[caseFanModelRaw.toLowerCase().trim()];
-    if (!modelKey) {
-        console.warn(`  [Case Fan Handler] WARNING: No matching model key found in caseFanModelMap for "${caseFanModelRaw}".`);
-        return `Sorry, I couldn't find detailed specifications for the Case Fan model "${caseFanModelRaw}".`;
+    // Try to get case-fan-model from context if not provided in current turn
+    if (!caseFanModelKey && inputContexts && inputContexts.length > 0) {
+        const fanContext = inputContexts.find(context => context.name.endsWith('/contexts/case_fan_details_context'));
+        if (fanContext && fanContext.parameters && fanContext.parameters['case-fan-model']) {
+            const contextFanModelRaw = fanContext.parameters['case-fan-model'];
+            const lowerCaseContextRaw = contextFanModelRaw.toLowerCase().trim();
+            caseFanModelKey = caseFanModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
+            if (!caseFanModelRaw) { caseFanModelRaw = contextFanModelRaw; } // Update raw if it was empty
+            console.log('   [Case Fan Handler] Retrieved case-fan-model from context:', caseFanModelKey);
+        }
     }
 
-    const fan = caseFanDatabase[modelKey];
-    if (!fan) {
-        console.error(`  [Case Fan Handler] ERROR: No Case Fan data found in caseFanDatabase for key: "${modelKey}".`);
-        return `Sorry, I couldn't find full specifications for "${caseFanModelRaw}". The data might be missing or incorrect.`;
+    let fulfillmentText = 'Sorry, I couldn\'t find details for that Case Fan model.';
+    let outputContexts = [];
+
+    const fan = caseFanDatabase[caseFanModelKey];
+
+    if (fan) {
+        if (requestedDetail && fan[requestedDetail]) {
+            fulfillmentText = `For the ${fan.name}, the ${requestedDetail} is: ${fan[requestedDetail]}.`;
+            console.log(`   [Case Fan Handler] Responding with specific detail: ${requestedDetail}`);
+        } else if (requestedDetail) {
+            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${fan.name}.`;
+            console.log(`   [Case Fan Handler] Requested detail "${requestedDetail}" not found for ${fan.name}.`);
+        } else {
+            // General info if no specific detail was requested
+            let response = `The ${fan.name} is a ${fan.size} case fan. `;
+            response += `It runs at ${fan.rpmRange}, providing ${fan.airflow} airflow `;
+            if (fan.staticPressure) {
+                response += `with ${fan.staticPressure} static pressure, `;
+            }
+            response += `and has a noise level of ${fan.noiseLevel}. `;
+            response += `It features ${fan.rgb}. `;
+            response += `Compatibility: ${fan.compatibility}`;
+            fulfillmentText = response;
+            console.log('   [Case Fan Handler] Responding with general info.');
+        }
+
+        // Set the output context to remember the fan model for follow-up questions
+        if (caseFanModelRaw) { // Ensure model is available to store in context
+            outputContexts.push({
+                name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/case_fan_details_context`,
+                lifespanCount: 5,
+                parameters: {
+                    'case-fan-model': caseFanModelRaw
+                }
+            });
+            console.log('   [Case Fan Handler] Set output context: case_fan_details_context');
+        } else {
+            console.warn('   [Case Fan Handler] WARNING: caseFanModelRaw was empty, could not set case_fan_details_context.');
+        }
+    } else {
+        console.log(`   [Case Fan Handler] Case Fan model "${caseFanModelRaw}" (key: "${caseFanModelKey}") not found in database.`);
     }
 
-    // Construct the detailed response based on the fan's properties
-    let response = `The ${fan.name} is a ${fan.size} case fan. `;
-    response += `It runs at ${fan.rpmRange}, providing ${fan.airflow} airflow `;
-    if (fan.staticPressure) { // Include static pressure if applicable
-        response += `with ${fan.staticPressure} static pressure, `;
-    }
-    response += `and has a noise level of ${fan.noiseLevel}. `;
-    response += `It features ${fan.rgb}. `;
-    response += `Compatibility: ${fan.compatibility}`;
-
-    console.log('  [Case Fan Handler] Generated response:', response);
-    return response;
+    console.log('   [Case Fan Handler] Fulfillment Text:', fulfillmentText);
+    console.log('   [Case Fan Handler] Output Contexts:', outputContexts);
+    return { fulfillmentText, outputContexts };
 }
 
 module.exports = { handleCaseFanIntent };
