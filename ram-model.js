@@ -41,7 +41,7 @@ const ramDatabase = {
         capacity: "8GB",
         type: "DDR4",
         speed: "3200 MHz",
-        voltage: "1.2 V",
+        voltage: "1.2 V", 
         compatibility: "Compatible with DDR4 (288-pin) motherboards supporting 1.2V and 3200 MHz. Matched pairs recommended for dual-channel. Always check motherboard QVL.",
         price: "₱1,600" // Added price
     }
@@ -91,9 +91,9 @@ function handleRAMIntent(parameters, inputContexts, projectId, sessionId) {
         if (requestedDetail) {
             let detailValue = ram[requestedDetail];
             if (detailValue !== undefined) {
-                 fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${detailValue}.`;
+                fulfillmentText = `For ${ram.name}, the ${requestedDetail} is: ${detailValue}.`;
             } else {
-                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
+                fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${ram.name}.`;
             }
         } else {
             fulfillmentText = `The ${ram.name} RAM comes in ${ram.capacity} capacities, is a ${ram.type} type, runs at ${ram.speed}, uses ${ram.voltage}, and costs around ${ram.price}. Compatibility: ${ram.compatibility}`;

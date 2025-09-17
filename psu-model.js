@@ -89,9 +89,9 @@ const psuModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('     [PSU Handler] Called.');
-    console.log('     [PSU Handler] Received parameters:', parameters);
-    console.log('     [PSU Handler] Received inputContexts:', inputContexts);
+    console.log('    [PSU Handler] Called.');
+    console.log('    [PSU Handler] Received parameters:', parameters);
+    console.log('    [PSU Handler] Received inputContexts:', inputContexts);
 
     let psuModelRaw = parameters["psu-model"];
     const requestedDetail = parameters["psu-detail"];
@@ -109,7 +109,7 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
             const lowerCaseContextRaw = contextPsuModelRaw.toLowerCase().trim();
             psuModelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!psuModelRaw) { psuModelRaw = contextPsuModelRaw; }
-            console.log('     [PSU Handler] Retrieved psu-model from context:', psuModelKey);
+            console.log('    [PSU Handler] Retrieved psu-model from context:', psuModelKey);
         }
     }
 
@@ -119,24 +119,27 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
     const psu = psuDatabase[psuModelKey];
 
     if (psu) {
+        // Handle specific detail request
         if (requestedDetail) {
             let detailValue = psu[requestedDetail];
             if (detailValue !== undefined) {
                 fulfillmentText = `For the ${psu.name}, the ${requestedDetail} is: ${detailValue}.`;
-                console.log(`     [PSU Handler] Responding with specific detail: ${requestedDetail}`);
+                console.log(`    [PSU Handler] Responding with specific detail: ${requestedDetail}`);
             } else {
                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${psu.name}.`;
-                console.log(`     [PSU Handler] Requested detail "${requestedDetail}" not found for ${psu.name}.`);
+                console.log(`    [PSU Handler] Requested detail "${requestedDetail}" not found for ${psu.name}.`);
             }
         } else {
+            // General info if no specific detail was requested
             let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
             response += `It typically includes cables for ${psu.cables}. `;
-            response += `Compatibility: ${psu.compatibility}`;
-            response += ` The estimated price is ${psu.price}.`; // Added price
+            response += `Compatibility: ${psu.compatibility}. `;
+            response += `The estimated price is ${psu.price}.`; // Added price
             fulfillmentText = response;
-            console.log('     [PSU Handler] Responding with general info.');
+            console.log('    [PSU Handler] Responding with general info.');
         }
 
+        // Set the output context to remember the PSU model for follow-up questions
         if (psuModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/psu_details_context`,
@@ -145,16 +148,16 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
                     'psu-model': psuModelRaw
                 }
             });
-            console.log('     [PSU Handler] Set output context: psu_details_context');
+            console.log('    [PSU Handler] Set output context: psu_details_context');
         } else {
-            console.warn('     [PSU Handler] WARNING: psuModelRaw was empty, could not set psu_details_context.');
+            console.warn('    [PSU Handler] WARNING: psuModelRaw was empty, could not set psu_details_context.');
         }
     } else {
-        console.log(`     [PSU Handler] PSU model "${psuModelRaw}" (key: "${psuModelKey}") not found in database.`);
+        console.log(`    [PSU Handler] PSU model "${psuModelRaw}" (key: "${psuModelKey}") not found in database.`);
     }
 
-    console.log('     [PSU Handler] Fulfillment Text:', fulfillmentText);
-    console.log('     [PSU Handler] Output Contexts:', outputContexts);
+    console.log('    [PSU Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [PSU Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 

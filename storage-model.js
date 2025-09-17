@@ -81,9 +81,9 @@ const storageModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('     [Storage Handler] Called.');
-    console.log('     [Storage Handler] Received parameters:', parameters);
-    console.log('     [Storage Handler] Received inputContexts:', inputContexts);
+    console.log('    [Storage Handler] Called.');
+    console.log('    [Storage Handler] Received parameters:', parameters);
+    console.log('    [Storage Handler] Received inputContexts:', inputContexts);
 
     let storageModelRaw = parameters["storage-model"];
     const requestedDetail = parameters["storage-detail"];
@@ -101,7 +101,7 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
             const lowerCaseContextRaw = contextStorageModelRaw.toLowerCase().trim();
             storageModelKey = storageModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!storageModelRaw) { storageModelRaw = contextStorageModelRaw; }
-            console.log('     [Storage Handler] Retrieved storage-model from context:', storageModelKey);
+            console.log('    [Storage Handler] Retrieved storage-model from context:', storageModelKey);
         }
     }
 
@@ -111,16 +111,18 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
     const storage = storageDatabase[storageModelKey];
 
     if (storage) {
+        // Handle specific detail request
         if (requestedDetail) {
             let detailValue = storage[requestedDetail];
             if (detailValue !== undefined) {
                 fulfillmentText = `For the ${storage.name}, the ${requestedDetail} is: ${detailValue}.`;
-                console.log(`     [Storage Handler] Responding with specific detail: ${requestedDetail}`);
+                console.log(`    [Storage Handler] Responding with specific detail: ${requestedDetail}`);
             } else {
                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${storage.name}.`;
-                console.log(`     [Storage Handler] Requested detail "${requestedDetail}" not found for ${storage.name}.`);
+                console.log(`    [Storage Handler] Requested detail "${requestedDetail}" not found for ${storage.name}.`);
             }
         } else {
+            // General info if no specific detail was requested
             let response = `The ${storage.name} is a ${storage.formFactor} ${storage.type} with ${storage.capacity} capacity, using a ${storage.interface} interface. `;
 
             if (storage.type === "HDD") {
@@ -132,9 +134,10 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
             response += `Compatibility: ${storage.compatibility}`;
             response += ` The estimated price is ${storage.price}.`; // Added price
             fulfillmentText = response;
-            console.log('     [Storage Handler] Responding with general info.');
+            console.log('    [Storage Handler] Responding with general info.');
         }
 
+        // Set the output context to remember the Storage model for follow-up questions
         if (storageModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/storage_details_context`,
@@ -143,16 +146,16 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
                     'storage-model': storageModelRaw
                 }
             });
-            console.log('     [Storage Handler] Set output context: storage_details_context');
+            console.log('    [Storage Handler] Set output context: storage_details_context');
         } else {
-            console.warn('     [Storage Handler] WARNING: storageModelRaw was empty, could not set storage_details_context.');
+            console.warn('    [Storage Handler] WARNING: storageModelRaw was empty, could not set storage_details_context.');
         }
     } else {
-        console.log(`     [Storage Handler] Storage model "${storageModelRaw}" (key: "${storageModelKey}") not found in database.`);
+        console.log(`    [Storage Handler] Storage model "${storageModelRaw}" (key: "${storageModelKey}") not found in database.`);
     }
 
-    console.log('     [Storage Handler] Fulfillment Text:', fulfillmentText);
-    console.log('     [Storage Handler] Output Contexts:', outputContexts);
+    console.log('    [Storage Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [Storage Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 

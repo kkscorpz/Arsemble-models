@@ -62,9 +62,9 @@ const caseFanModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('   [Case Fan Handler] Called.');
-    console.log('   [Case Fan Handler] Received parameters:', parameters);
-    console.log('   [Case Fan Handler] Received inputContexts:', inputContexts);
+    console.log('    [Case Fan Handler] Called.');
+    console.log('    [Case Fan Handler] Received parameters:', parameters);
+    console.log('    [Case Fan Handler] Received inputContexts:', inputContexts);
 
     let caseFanModelRaw = parameters["case-fan-model"];
     const requestedDetail = parameters.requested_detail;
@@ -82,7 +82,7 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
             const lowerCaseContextRaw = contextFanModelRaw.toLowerCase().trim();
             caseFanModelKey = caseFanModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
             if (!caseFanModelRaw) { caseFanModelRaw = contextFanModelRaw; }
-            console.log('   [Case Fan Handler] Retrieved case-fan-model from context:', caseFanModelKey);
+            console.log('    [Case Fan Handler] Retrieved case-fan-model from context:', caseFanModelKey);
         }
     }
 
@@ -94,10 +94,10 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
     if (fan) {
         if (requestedDetail && fan[requestedDetail] !== undefined) {
             fulfillmentText = `For the ${fan.name}, the ${requestedDetail} is: ${fan[requestedDetail]}.`;
-            console.log(`   [Case Fan Handler] Responding with specific detail: ${requestedDetail}`);
+            console.log(`    [Case Fan Handler] Responding with specific detail: ${requestedDetail}`);
         } else if (requestedDetail) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${fan.name}.`;
-            console.log(`   [Case Fan Handler] Requested detail "${requestedDetail}" not found for ${fan.name}.`);
+            console.log(`    [Case Fan Handler] Requested detail "${requestedDetail}" not found for ${fan.name}.`);
         } else {
             let response = `The ${fan.name} is a ${fan.size} case fan. `;
             response += `It runs at ${fan.rpmRange}, providing ${fan.airflow} airflow `;
@@ -106,10 +106,10 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
             }
             response += `and has a noise level of ${fan.noiseLevel}. `;
             response += `It features ${fan.rgb}. `;
-            response += `The estimated price is ${fan.price}. `; // Added price
+            response += `The estimated price is ${fan.price}. `;
             response += `Compatibility: ${fan.compatibility}`;
             fulfillmentText = response;
-            console.log('   [Case Fan Handler] Responding with general info.');
+            console.log('    [Case Fan Handler] Responding with general info.');
         }
 
         if (caseFanModelRaw) {
@@ -120,16 +120,16 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
                     'case-fan-model': caseFanModelRaw
                 }
             });
-            console.log('   [Case Fan Handler] Set output context: case_fan_details_context');
+            console.log('    [Case Fan Handler] Set output context: case_fan_details_context');
         } else {
-            console.warn('   [Case Fan Handler] WARNING: caseFanModelRaw was empty, could not set case_fan_details_context.');
+            console.warn('    [Case Fan Handler] WARNING: caseFanModelRaw was empty, could not set case_fan_details_context.');
         }
     } else {
-        console.log(`   [Case Fan Handler] Case Fan model "${caseFanModelRaw}" (key: "${caseFanModelKey}") not found in database.`);
+        console.log(`    [Case Fan Handler] Case Fan model "${caseFanModelRaw}" (key: "${caseFanModelKey}") not found in database.`);
     }
 
-    console.log('   [Case Fan Handler] Fulfillment Text:', fulfillmentText);
-    console.log('   [Case Fan Handler] Output Contexts:', outputContexts);
+    console.log('    [Case Fan Handler] Fulfillment Text:', fulfillmentText);
+    console.log('    [Case Fan Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
