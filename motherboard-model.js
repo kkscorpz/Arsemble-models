@@ -7,7 +7,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 128GB",
         features: "PCIe 4.0, HDMI, DVI-D, Realtek audio, 1Gb LAN",
-        compatibility: "Ryzen 3000/5000 series (excluding 3200G/3400G without BIOS update)"
+        compatibility: "Ryzen 3000/5000 series (excluding 3200G/3400G without BIOS update)",
+        price: "₱6,500" // Added price
     },
     "msi b450m a pro max ii": {
         name: "MSI B450M A PRO MAX II",
@@ -16,7 +17,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 64GB",
         features: "PCIe 3.0, HDMI, DVI, USB 3.2 Gen1, basic VRM",
-        compatibility: "Supports Ryzen 1000 to 5000 series with BIOS update"
+        compatibility: "Supports Ryzen 1000 to 5000 series with BIOS update",
+        price: "₱4,500" // Added price
     },
     "msi pro h610m s ddr4": {
         name: "MSI PRO H610M-S DDR4",
@@ -25,7 +27,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 64GB",
         features: "Basic IO, 1x PCIe x16, HDMI, VGA, 1Gb LAN",
-        compatibility: "Supports 12th/13th/14th Gen Intel CPUs"
+        compatibility: "Supports 12th/13th/14th Gen Intel CPUs",
+        price: "₱5,000" // Added price
     },
     "ramsta rs-b450mp": {
         name: "RAMSTA RS-B450MP",
@@ -34,7 +37,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 64GB",
         features: "Entry-level, basic IO ports",
-        compatibility: "Supports Ryzen 1000 to 5000 series (BIOS update may be needed)"
+        compatibility: "Supports Ryzen 1000 to 5000 series (BIOS update may be needed)",
+        price: "₱3,800" // Added price
     },
     "ramsta rs-h311d4": {
         name: "RAMSTA RS-H311D4",
@@ -43,7 +47,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 32GB",
         features: "Legacy board, VGA/HDMI, USB 3.0",
-        compatibility: "Supports Intel 8th/9th Gen CPUs (Coffee Lake)"
+        compatibility: "Supports Intel 8th/9th Gen CPUs (Coffee Lake)",
+        price: "₱2,900" // Added price
     },
     "msi b650m gaming plus wifi": {
         name: "MSI B650M Gaming Plus WiFi",
@@ -52,7 +57,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR5, up to 128GB",
         features: "WiFi 6E, PCIe 4.0, 2.5Gb LAN, USB-C",
-        compatibility: "Supports Ryzen 7000/8000 series"
+        compatibility: "Supports Ryzen 7000/8000 series",
+        price: "₱12,500" // Added price
     },
     "msi b760m gaming plus wifi ddr4": {
         name: "MSI B760M Gaming Plus WiFi DDR4",
@@ -61,7 +67,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 128GB",
         features: "PCIe 5.0, WiFi 6, HDMI/DP, 2.5Gb LAN",
-        compatibility: "Supports Intel 12th/13th/14th Gen CPUs"
+        compatibility: "Supports Intel 12th/13th/14th Gen CPUs",
+        price: "₱8,000" // Added price
     },
     "gigabyte h610m k ddr4": {
         name: "GIGABYTE H610M K DDR4",
@@ -70,7 +77,8 @@ const motherboardDatabase = {
         formFactor: "Micro-ATX",
         memorySupport: "DDR4, up to 64GB",
         features: "HDMI, VGA, Realtek audio, PCIe 4.0",
-        compatibility: "Supports Intel 12th/13th/14th Gen CPUs"
+        compatibility: "Supports Intel 12th/13th/14th Gen CPUs",
+        price: "₱4,800" // Added price
     }
 };
 
@@ -122,12 +130,12 @@ const motherboardModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('    [MB Handler] Called.');
-    console.log('    [MB Handler] Received parameters:', parameters);
-    console.log('    [MB Handler] Received inputContexts:', inputContexts);
+    console.log('     [MB Handler] Called.');
+    console.log('     [MB Handler] Received parameters:', parameters);
+    console.log('     [MB Handler] Received inputContexts:', inputContexts);
 
-    let motherboardModelRaw = parameters["motherboard-model"]; // Expecting 'motherboard-model' from Dialogflow
-    const requestedDetail = parameters["motherboard-detail"]; // Expecting 'motherboard-detail' for specific requests
+    let motherboardModelRaw = parameters["motherboard-model"];
+    const requestedDetail = parameters["motherboard-detail"];
 
     let motherboardModelKey;
     if (motherboardModelRaw) {
@@ -142,8 +150,8 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
             const contextMbModelRaw = mbContext.parameters['motherboard-model'];
             const lowerCaseContextRaw = contextMbModelRaw.toLowerCase().trim();
             motherboardModelKey = motherboardModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!motherboardModelRaw) { motherboardModelRaw = contextMbModelRaw; } // Update raw if it was empty
-            console.log('    [MB Handler] Retrieved motherboard-model from context:', motherboardModelKey);
+            if (!motherboardModelRaw) { motherboardModelRaw = contextMbModelRaw; }
+            console.log('     [MB Handler] Retrieved motherboard-model from context:', motherboardModelKey);
         }
     }
 
@@ -154,24 +162,28 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
 
     if (mb) {
         // Handle specific detail request
-        if (requestedDetail && mb[requestedDetail]) {
-            fulfillmentText = `For the ${mb.name}, the ${requestedDetail} is: ${mb[requestedDetail]}.`;
-            console.log(`    [MB Handler] Responding with specific detail: ${requestedDetail}`);
-        } else if (requestedDetail) {
-            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${mb.name}.`;
-            console.log(`    [MB Handler] Requested detail "${requestedDetail}" not found for ${mb.name}.`);
+        if (requestedDetail) {
+            let detailValue = mb[requestedDetail];
+            if (detailValue !== undefined) {
+                 fulfillmentText = `For the ${mb.name}, the ${requestedDetail} is: ${detailValue}.`;
+                 console.log(`     [MB Handler] Responding with specific detail: ${requestedDetail}`);
+            } else {
+                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${mb.name}.`;
+                 console.log(`     [MB Handler] Requested detail "${requestedDetail}" not found for ${mb.name}.`);
+            }
         } else {
             // General info if no specific detail was requested
             let response = `The ${mb.name} uses the ${mb.socket} socket with the ${mb.chipset} chipset. `;
             response += `It is a ${mb.formFactor} board supporting ${mb.memorySupport}. `;
             response += `Key features include: ${mb.features}. `;
-            response += `Compatibility: ${mb.compatibility}.`;
+            response += `Compatibility: ${mb.compatibility}. `;
+            response += `The estimated price is ${mb.price}.`; // Added price to the general response
             fulfillmentText = response;
-            console.log('    [MB Handler] Responding with general info.');
+            console.log('     [MB Handler] Responding with general info.');
         }
 
         // Set the output context to remember the Motherboard model for follow-up questions
-        if (motherboardModelRaw) { // Ensure model is available to store in context
+        if (motherboardModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/motherboard_details_context`,
                 lifespanCount: 5,
@@ -179,17 +191,17 @@ function handleMotherboardIntent(parameters, inputContexts, projectId, sessionId
                     'motherboard-model': motherboardModelRaw
                 }
             });
-            console.log('    [MB Handler] Set output context: motherboard_details_context');
+            console.log('     [MB Handler] Set output context: motherboard_details_context');
         } else {
-            console.warn('    [MB Handler] WARNING: motherboardModelRaw was empty, could not set motherboard_details_context.');
+            console.warn('     [MB Handler] WARNING: motherboardModelRaw was empty, could not set motherboard_details_context.');
         }
     } else {
-        console.log(`    [MB Handler] Motherboard model "${motherboardModelRaw}" (key: "${motherboardModelKey}") not found in database.`);
+        console.log(`     [MB Handler] Motherboard model "${motherboardModelRaw}" (key: "${motherboardModelKey}") not found in database.`);
     }
 
-    console.log('    [MB Handler] Fulfillment Text:', fulfillmentText);
-    console.log('    [MB Handler] Output Contexts:', outputContexts);
+    console.log('     [MB Handler] Fulfillment Text:', fulfillmentText);
+    console.log('     [MB Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
-module.exports = { handleMotherboardIntent };
+module.exports = { handleMotherboardIntent };   

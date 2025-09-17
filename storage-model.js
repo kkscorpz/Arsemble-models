@@ -8,7 +8,8 @@ const storageDatabase = {
         interface: "SATA 6Gb/s",
         formFactor: "3.5-inch",
         rpm: "7200 RPM",
-        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. It's a good choice for bulk storage."
+        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. It's a good choice for bulk storage.",
+        price: "₱2,500" // Added price
     },
     "western digital blue 2tb": {
         name: "Western Digital Blue 2TB",
@@ -16,8 +17,9 @@ const storageDatabase = {
         capacity: "2TB",
         interface: "SATA 6Gb/s",
         formFactor: "3.5-inch",
-        rpm: "5400/7200 RPM (typically 5400 for Blue)", // Reflecting common WD Blue variations
-        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. Excellent for larger storage needs."
+        rpm: "5400/7200 RPM (typically 5400 for Blue)",
+        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 3.5-inch drive bay. Excellent for larger storage needs.",
+        price: "₱3,800" // Added price
     },
     "samsung 970 evo plus 1tb": {
         name: "Samsung 970 EVO Plus 1TB",
@@ -27,7 +29,8 @@ const storageDatabase = {
         formFactor: "M.2 2280",
         readSpeed: "~3500MB/s",
         writeSpeed: "~3300MB/s",
-        compatibility: "Requires a motherboard with an available M.2 slot supporting PCIe Gen 3.0 x4 NVMe SSDs. Check if your motherboard shares M.2 bandwidth with SATA ports."
+        compatibility: "Requires a motherboard with an available M.2 slot supporting PCIe Gen 3.0 x4 NVMe SSDs. Check if your motherboard shares M.2 bandwidth with SATA ports.",
+        price: "₱5,500" // Added price
     },
     "crucial mx500 500gb": {
         name: "Crucial MX500 500GB",
@@ -37,7 +40,8 @@ const storageDatabase = {
         formFactor: "2.5-inch",
         readSpeed: "~560MB/s",
         writeSpeed: "~510MB/s",
-        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 2.5-inch drive bay. It's a reliable and cost-effective option for a fast boot drive or general storage."
+        compatibility: "Requires a motherboard with an available SATA port and a SATA power connector from the PSU. Ensure your case has a 2.5-inch drive bay. It's a reliable and cost-effective option for a fast boot drive or general storage.",
+        price: "₱3,000" // Added price
     }
 };
 
@@ -77,12 +81,12 @@ const storageModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('    [Storage Handler] Called.');
-    console.log('    [Storage Handler] Received parameters:', parameters);
-    console.log('    [Storage Handler] Received inputContexts:', inputContexts);
+    console.log('     [Storage Handler] Called.');
+    console.log('     [Storage Handler] Received parameters:', parameters);
+    console.log('     [Storage Handler] Received inputContexts:', inputContexts);
 
-    let storageModelRaw = parameters["storage-model"]; // Expecting 'storage-model' from Dialogflow
-    const requestedDetail = parameters["storage-detail"]; // Expecting 'storage-detail' for specific requests
+    let storageModelRaw = parameters["storage-model"];
+    const requestedDetail = parameters["storage-detail"];
 
     let storageModelKey;
     if (storageModelRaw) {
@@ -90,15 +94,14 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
         storageModelKey = storageModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    // Try to get storage-model from context if not provided in current turn
     if (!storageModelKey && inputContexts && inputContexts.length > 0) {
         const storageContext = inputContexts.find(context => context.name.endsWith('/contexts/storage_details_context'));
         if (storageContext && storageContext.parameters && storageContext.parameters['storage-model']) {
             const contextStorageModelRaw = storageContext.parameters['storage-model'];
             const lowerCaseContextRaw = contextStorageModelRaw.toLowerCase().trim();
             storageModelKey = storageModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!storageModelRaw) { storageModelRaw = contextStorageModelRaw; } // Update raw if it was empty
-            console.log('    [Storage Handler] Retrieved storage-model from context:', storageModelKey);
+            if (!storageModelRaw) { storageModelRaw = contextStorageModelRaw; }
+            console.log('     [Storage Handler] Retrieved storage-model from context:', storageModelKey);
         }
     }
 
@@ -108,33 +111,31 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
     const storage = storageDatabase[storageModelKey];
 
     if (storage) {
-        // Handle specific detail request
         if (requestedDetail) {
             let detailValue = storage[requestedDetail];
             if (detailValue !== undefined) {
-                 fulfillmentText = `For the ${storage.name}, the ${requestedDetail} is: ${detailValue}.`;
-                 console.log(`    [Storage Handler] Responding with specific detail: ${requestedDetail}`);
+                fulfillmentText = `For the ${storage.name}, the ${requestedDetail} is: ${detailValue}.`;
+                console.log(`     [Storage Handler] Responding with specific detail: ${requestedDetail}`);
             } else {
-                 fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${storage.name}.`;
-                 console.log(`    [Storage Handler] Requested detail "${requestedDetail}" not found for ${storage.name}.`);
+                fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${storage.name}.`;
+                console.log(`     [Storage Handler] Requested detail "${requestedDetail}" not found for ${storage.name}.`);
             }
         } else {
-            // General info if no specific detail was requested
             let response = `The ${storage.name} is a ${storage.formFactor} ${storage.type} with ${storage.capacity} capacity, using a ${storage.interface} interface. `;
 
             if (storage.type === "HDD") {
                 response += `It spins at ${storage.rpm}. `;
-            } else if (storage.type.includes("SSD")) { // Covers NVMe SSD and SATA SSD
+            } else if (storage.type.includes("SSD")) {
                 response += `It offers read speeds of up to ${storage.readSpeed} and write speeds up to ${storage.writeSpeed}. `;
             }
 
             response += `Compatibility: ${storage.compatibility}`;
+            response += ` The estimated price is ${storage.price}.`; // Added price
             fulfillmentText = response;
-            console.log('    [Storage Handler] Responding with general info.');
+            console.log('     [Storage Handler] Responding with general info.');
         }
 
-        // Set the output context to remember the Storage model for follow-up questions
-        if (storageModelRaw) { // Ensure model is available to store in context
+        if (storageModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/storage_details_context`,
                 lifespanCount: 5,
@@ -142,16 +143,16 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
                     'storage-model': storageModelRaw
                 }
             });
-            console.log('    [Storage Handler] Set output context: storage_details_context');
+            console.log('     [Storage Handler] Set output context: storage_details_context');
         } else {
-            console.warn('    [Storage Handler] WARNING: storageModelRaw was empty, could not set storage_details_context.');
+            console.warn('     [Storage Handler] WARNING: storageModelRaw was empty, could not set storage_details_context.');
         }
     } else {
-        console.log(`    [Storage Handler] Storage model "${storageModelRaw}" (key: "${storageModelKey}") not found in database.`);
+        console.log(`     [Storage Handler] Storage model "${storageModelRaw}" (key: "${storageModelKey}") not found in database.`);
     }
 
-    console.log('    [Storage Handler] Fulfillment Text:', fulfillmentText);
-    console.log('    [Storage Handler] Output Contexts:', outputContexts);
+    console.log('     [Storage Handler] Fulfillment Text:', fulfillmentText);
+    console.log('     [Storage Handler] Output Contexts:', outputContexts);
     return { fulfillmentText, outputContexts };
 }
 
