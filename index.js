@@ -2,55 +2,54 @@
 
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000; // Use environment variable PORT or default to 3000
+const PORT = process.env.PORT || 3000;
 
-// Import handler functions for different component types
+
 const { handleCPUIntent } = require('./cpu-model');
 const { handleRAMIntent } = require('./ram-model');
 const { handleMotherboardIntent } = require('./motherboard-model');
 const { handleGPUIntent } = require('./gpu-model');
 const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
-const { handleStorageIntent } = require('./storage-model'); // Updated import
+const { handleStorageIntent } = require('./storage-model');
 const { handlePSUIntent } = require('./psu-model');
+const { handleCompatibilityIntent } = require('./compatibility-handler'); // Keep this import
 
-app.use(express.json()); // Middleware to parse incoming JSON payloads from Dialogflow
 
-// Basic route to check if the server is running
+app.use(express.json());
+
+
 app.get('/', (req, res) => {
     res.send('Dialogflow Webhook Server is Running!');
 });
 
-// Main webhook endpoint for Dialogflow
+
 app.post('/webhook', (req, res) => {
-    // Extract necessary information from the Dialogflow request body
     const queryResult = req.body.queryResult;
     const intentDisplayName = queryResult?.intent?.displayName;
     const parameters = queryResult?.parameters;
-    const inputContexts = queryResult?.outputContexts || []; // Output contexts for managing conversation flow
+    const inputContexts = queryResult?.outputContexts || [];
 
-    // Extract session ID for context management or logging
     const sessionParts = req.body.session.split('/');
     const projectId = sessionParts[1];
     const sessionId = sessionParts[4];
 
-    // Log incoming request details for debugging
     console.log(`[Webhook Request] Session: ${sessionId}, Intent: "${intentDisplayName}", Parameters:`, parameters);
 
-    // Validate the incoming request
+
     if (!intentDisplayName || !parameters) {
         console.error('ERROR: Invalid Dialogflow request payload - missing intent display name or parameters.');
         return res.json({ fulfillmentText: 'Invalid request payload.' });
     }
 
-    // Initialize the response object
+
     let fulfillmentResponse = {
         fulfillmentText: 'Sorry, I couldn\'t process that request.',
-        outputContexts: [] // Default empty contexts
+        outputContexts: []
     };
 
     // --- Intent Handling Logic ---
-    // Use 'if-else if' structure to route requests to appropriate handlers based on intent display name.
+    // Add the new else if block for compatibility questions.
 
     // 1. Handle the generic RAM Intent
     if (intentDisplayName === 'Get_RAM_Details') {
@@ -93,11 +92,16 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = psuHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = psuHandlerResult.outputContexts;
     }
-    // 8. Handle the generic Storage Intent (CHANGED)
-    else if (intentDisplayName === 'Get_Storage_Details') { // Changed from checking storageIntents array
+    // 8. Handle the generic Storage Intent
+    else if (intentDisplayName === 'Get_Storage_Details') {
         const storageHandlerResult = handleStorageIntent(parameters, inputContexts, projectId, sessionId);
         fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
+    }
+    // 9. Handle the new Compatibility Intent
+    else if (intentDisplayName === 'Get_Compatibility_Details') {
+        // Pass the parameters to the new handler function
+        fulfillmentResponse.fulfillmentText = handleCompatibilityIntent(parameters);
     }
     // Fallback for any intent not explicitly handled above
     else {
@@ -114,6 +118,3 @@ app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
     console.log(`Access webhook at: http://localhost:${PORT}/webhook`);
 });
-
-// --- Arrays for Other Component Intents ---
-// REMOVED storageIntents array, now handled by generic intent
