@@ -36,15 +36,17 @@ const gpuModelMap = {
 };
 
 /**
- * Handles Dialogflow intents for GPU information.
- * @param {object} parameters - The parameters from Dialogflow.
- * @param {array} inputContexts - The input contexts from Dialogflow.
+ * Handles Dialogflow intents related to GPU (Graphics Card) information.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'gpu-model' and 'requested_detail'.
+ * @param {array} inputContexts - The input contexts from Dialogflow request.
  * @param {string} projectId - The Dialogflow project ID.
  * @param {string} sessionId - The Dialogflow session ID.
- * @returns {object} An object with fulfillmentText and outputContexts.
+ * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('  [GPU Handler] Called.');
+    console.log('    [GPU Handler] Called.');
+    console.log('    [GPU Handler] Received parameters:', parameters);
+    console.log('    [GPU Handler] Received inputContexts:', inputContexts);
 
     let gpuModelRaw = parameters["gpu-model"];
     const requestedDetail = parameters['gpu-detail'];
@@ -80,13 +82,15 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
             fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${gpu.name}.`;
             console.log(`    [GPU Handler] Requested detail "${requestedDetail}" not found for ${gpu.name}.`);
         } else {
+            // General info if no specific detail was requested
             let response = `The ${gpu.name} has ${gpu.vram} VRAM, a boost clock of ${gpu.clockSpeed}, and consumes approximately ${gpu.powerConsumption}. `;
             response += `It uses a ${gpu.slotType} slot. Compatibility: ${gpu.compatibility}`;
             fulfillmentText = response;
             console.log('    [GPU Handler] Responding with general info.');
         }
 
-        if (gpuModelRaw) {
+        // Set the output context to remember the GPU model for follow-up questions
+        if (gpuModelRaw) { // Ensure model is available to store in context
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/gpu_details_context`,
                 lifespanCount: 5,
@@ -101,10 +105,9 @@ function handleGPUIntent(parameters, inputContexts, projectId, sessionId) {
     } else {
         console.log(`    [GPU Handler] GPU model "${gpuModelRaw}" (key: "${gpuModelKey}") not found in database.`);
     }
-    
+
     console.log('    [GPU Handler] Fulfillment Text:', fulfillmentText);
     console.log('    [GPU Handler] Output Contexts:', outputContexts);
-    
     return { fulfillmentText, outputContexts };
 }
 
