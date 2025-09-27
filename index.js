@@ -2,7 +2,7 @@
 
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; 
 
 
 const { handleCPUIntent } = require('./cpu-model');
@@ -11,12 +11,12 @@ const { handleMotherboardIntent } = require('./motherboard-model');
 const { handleGPUIntent } = require('./gpu-model');
 const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
-const { handleStorageIntent } = require('./storage-model');
+const { handleStorageIntent } = require('./storage-model'); 
 const { handlePSUIntent } = require('./psu-model');
 const { handleCompatibilityIntent } = require('./compatibility-handler');
 
+app.use(express.json()); 
 
-app.use(express.json());
 
 
 app.get('/', (req, res) => {
@@ -25,85 +25,101 @@ app.get('/', (req, res) => {
 
 
 app.post('/webhook', (req, res) => {
+   
     const queryResult = req.body.queryResult;
     const intentDisplayName = queryResult?.intent?.displayName;
     const parameters = queryResult?.parameters;
-    const inputContexts = queryResult?.outputContexts || [];
-
+    const inputContexts = queryResult?.outputContexts || []; 
+   
     const sessionParts = req.body.session.split('/');
     const projectId = sessionParts[1];
     const sessionId = sessionParts[4];
 
+    // Log incoming request details for debugging
     console.log(`[Webhook Request] Session: ${sessionId}, Intent: "${intentDisplayName}", Parameters:`, parameters);
 
-
+    
     if (!intentDisplayName || !parameters) {
         console.error('ERROR: Invalid Dialogflow request payload - missing intent display name or parameters.');
         return res.json({ fulfillmentText: 'Invalid request payload.' });
     }
 
-
+    
     let fulfillmentResponse = {
         fulfillmentText: 'Sorry, I couldn\'t process that request.',
-        outputContexts: []
+        outputContexts: [] 
     };
 
     // --- Intent Handling Logic ---
-    if (intentDisplayName === 'Get_CPU_Details') {
-        const handlerResult = handleCPUIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+    // Use 'if-else if' structure to route requests to appropriate handlers based on intent display name.
+
+    // 1. Handle the generic RAM Intent
+    if (intentDisplayName === 'Get_RAM_Details') {
+        const ramHandlerResult = handleRAMIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = ramHandlerResult.fulfillmentText;
+        fulfillmentResponse.fulfillmentMessages = ramHandlerResult.fulfillmentMessages;
+        fulfillmentResponse.outputContexts = ramHandlerResult.outputContexts;
     }
-    else if (intentDisplayName === 'Get_RAM_Details') {
-        const handlerResult = handleRAMIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+    // 2. Handle the generic CPU Intent
+    else if (intentDisplayName === 'Get_CPU_Details') {
+        fulfillmentResponse.fulfillmentText = handleCPUIntent(intentDisplayName, parameters);
     }
-    else if (intentDisplayName === 'Get_Motherboard_Details') {
-        const handlerResult = handleMotherboardIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
-    }
-    else if (intentDisplayName === 'Get_GPU_Details') {
-        const handlerResult = handleGPUIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
-    }
+    // 3. Handle the generic Case Fan Intent
     else if (intentDisplayName === 'Get_Case_Fan_Details') {
-        const handlerResult = handleCaseFanIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+        const caseFanHandlerResult = handleCaseFanIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = caseFanHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = caseFanHandlerResult.outputContexts;
     }
+    // 4. Handle the generic GPU Intent
+    else if (intentDisplayName === 'Get_GPU_Details') {
+        const gpuHandlerResult = handleGPUIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = gpuHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = gpuHandlerResult.outputContexts;
+    }
+    // 5. Handle the generic CPU Cooler Intent
     else if (intentDisplayName === 'Get_CPU_Cooler_Details') {
-        const handlerResult = handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+        const cpuCoolerHandlerResult = handleCPUCoolerIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = cpuCoolerHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = cpuCoolerHandlerResult.outputContexts;
     }
-    else if (intentDisplayName === 'Get_Storage_Details') {
-        const handlerResult = handleStorageIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+    // 6. Handle the generic Motherboard Intent
+    else if (intentDisplayName === 'Get_Motherboard_Details') {
+        const motherboardHandlerResult = handleMotherboardIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = motherboardHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = motherboardHandlerResult.outputContexts;
     }
+    // 7. Handle the generic PSU Intent
     else if (intentDisplayName === 'Get_PSU_Details') {
-        const handlerResult = handlePSUIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+        const psuHandlerResult = handlePSUIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = psuHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = psuHandlerResult.outputContexts;
+    }
+    // 8. Handle the generic Storage Intent (CHANGED)
+    else if (intentDisplayName === 'Get_Storage_Details') { // Changed from checking storageIntents array
+        const storageHandlerResult = handleStorageIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
     }
     else if (intentDisplayName === 'Get_Compatibility_Details') {
-        const handlerResult = handleCompatibilityIntent(parameters);
-        fulfillmentResponse.fulfillmentText = handlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = handlerResult.outputContexts;
+        const handlerResult = handleCompatibilityIntent(parameters, inputContexts, projectId, sessionId);
+        fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
+        fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
     }
+    // Fallback for any intent not explicitly handled above
     else {
         console.warn(`[Webhook] Unhandled intent received: "${intentDisplayName}".`);
         fulfillmentResponse.fulfillmentText = 'I\'m sorry, I don\'t have information for that component type yet, or I didn\'t understand your request fully.';
     }
 
+    // Send the final response back to Dialogflow
     return res.json(fulfillmentResponse);
 });
 
-
+// Start the Express server and listen on the specified port
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
     console.log(`Access webhook at: http://localhost:${PORT}/webhook`);
 });
+
+// --- Arrays for Other Component Intents ---
+// REMOVED storageIntents array, now handled by generic intent

@@ -1,4 +1,6 @@
-// psu.js
+// ================== PSU HANDLER ==================
+
+// PSU Database
 const psuDatabase = {
     "corsair rm850x": {
         name: "Corsair RM850x",
@@ -6,8 +8,8 @@ const psuDatabase = {
         efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
-        compatibility: "Suitable for most high-performance gaming PCs, especially with RTX 30-series/40-series or RX 6000/7000 series GPUs. Its modularity helps with cable management. Ensure your case has enough space for an ATX PSU.",
-        price: "₱8,000" // Added price
+        compatibility: "Great for high-performance gaming PCs (RTX 30/40, RX 6000/7000).",
+        price: "₱8,000"
     },
     "cooler master mwe white 750w": {
         name: "Cooler Master MWE White 750W",
@@ -15,8 +17,8 @@ const psuDatabase = {
         efficiencyRating: "80 Plus White",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
-        compatibility: "Suitable for most mid-range gaming PCs with single-GPU setups. Its non-modular design means all cables are fixed, so ensure good cable management in your case. Verify it has sufficient PCIe power connectors for your chosen GPU.",
-        price: "₱3,500" // Added price
+        compatibility: "Best for mid-range PCs. Ensure your GPU’s PCIe connectors match. Non-modular = harder cable management.",
+        price: "₱3,500"
     },
     "corsair cx650": {
         name: "Corsair CX650",
@@ -24,8 +26,8 @@ const psuDatabase = {
         efficiencyRating: "80 Plus Bronze",
         modularity: "Non-Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
-        compatibility: "Sufficient for many builds using CPUs like Ryzen 5/Intel i5 and GPUs like RTX 3050/3060 or RX 6600/6700. Like other non-modular PSUs, plan for cable management. Ensure required PCIe power connectors for your GPU.",
-        price: "₱4,000" // Added price
+        compatibility: "Good for Ryzen 5/i5 builds with GPUs like RTX 3050/3060 or RX 6600. Watch for cable clutter (non-modular).",
+        price: "₱4,000"
     },
     "cougar gx-f 750w": {
         name: "Cougar GX-F 750W",
@@ -33,8 +35,8 @@ const psuDatabase = {
         efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
-        compatibility: "A good choice for mid to high-end systems. Its fully modular design simplifies cable management, reducing clutter in your PC build. Ensure it has enough PCIe connectors for your GPU.",
-        price: "₱5,500" // Added price
+        compatibility: "Great for mid to high-end builds. Fully modular makes cable management easier.",
+        price: "₱5,500"
     },
     "seasonic focus plus gold 550w": {
         name: "Seasonic Focus Plus Gold 550W",
@@ -42,8 +44,8 @@ const psuDatabase = {
         efficiencyRating: "80 Plus Gold",
         modularity: "Fully Modular",
         cables: "ATX 24-pin, EPS 4+4-pin, PCIe 6+2-pin, SATA, Molex",
-        compatibility: "Ideal for entry-level to mid-range builds with less power-hungry GPUs (e.g., RTX 3050/3060, RX 6600). Its fully modular design is great for clean builds. Always check your GPU's minimum recommended PSU wattage.",
-        price: "₱6,000" // Added price
+        compatibility: "Ideal for entry-level to mid-range builds with RTX 3050/3060, RX 6600. Fully modular = neat builds.",
+        price: "₱6,000"
     }
 };
 
@@ -89,9 +91,7 @@ const psuModelMap = {
  * @returns {object} An object containing fulfillmentText and outputContexts.
  */
 function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
-    console.log('    [PSU Handler] Called.');
-    console.log('    [PSU Handler] Received parameters:', parameters);
-    console.log('    [PSU Handler] Received inputContexts:', inputContexts);
+    console.log("[PSU Handler] Called.", parameters);
 
     let psuModelRaw = parameters["psu-model"];
     const requestedDetail = parameters["psu-detail"];
@@ -102,62 +102,48 @@ function handlePSUIntent(parameters, inputContexts, projectId, sessionId) {
         psuModelKey = psuModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
-    if (!psuModelKey && inputContexts && inputContexts.length > 0) {
-        const psuContext = inputContexts.find(context => context.name.endsWith('/contexts/psu_details_context'));
-        if (psuContext && psuContext.parameters && psuContext.parameters['psu-model']) {
-            const contextPsuModelRaw = psuContext.parameters['psu-model'];
-            const lowerCaseContextRaw = contextPsuModelRaw.toLowerCase().trim();
+    // Retrieve model from context if missing
+    if (!psuModelKey && inputContexts?.length > 0) {
+        const psuContext = inputContexts.find(ctx => ctx.name.endsWith("/contexts/psu_details_context"));
+        if (psuContext?.parameters?.["psu-model"]) {
+            const contextModelRaw = psuContext.parameters["psu-model"];
+            const lowerCaseContextRaw = contextModelRaw.toLowerCase().trim();
             psuModelKey = psuModelMap[lowerCaseContextRaw] || lowerCaseContextRaw;
-            if (!psuModelRaw) { psuModelRaw = contextPsuModelRaw; }
-            console.log('    [PSU Handler] Retrieved psu-model from context:', psuModelKey);
+            if (!psuModelRaw) psuModelRaw = contextModelRaw;
         }
     }
 
-    let fulfillmentText = 'Sorry, I couldn\'t find details for that Power Supply Unit model.';
+    let fulfillmentText = "Sorry, I couldn’t find details for that PSU.";
     let outputContexts = [];
-
     const psu = psuDatabase[psuModelKey];
 
     if (psu) {
-        // Handle specific detail request
         if (requestedDetail) {
-            let detailValue = psu[requestedDetail];
+            const detailValue = psu[requestedDetail];
             if (detailValue !== undefined) {
                 fulfillmentText = `For the ${psu.name}, the ${requestedDetail} is: ${detailValue}.`;
-                console.log(`    [PSU Handler] Responding with specific detail: ${requestedDetail}`);
             } else {
-                fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${psu.name}.`;
-                console.log(`    [PSU Handler] Requested detail "${requestedDetail}" not found for ${psu.name}.`);
+                fulfillmentText = `Sorry, I don't have info about the ${requestedDetail} for ${psu.name}.`;
             }
         } else {
-            // General info if no specific detail was requested
-            let response = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} power supply. `;
-            response += `It typically includes cables for ${psu.cables}. `;
-            response += `Compatibility: ${psu.compatibility}. `;
-            response += `The estimated price is ${psu.price}.`; // Added price
-            fulfillmentText = response;
-            console.log('    [PSU Handler] Responding with general info.');
+            fulfillmentText = `The ${psu.name} is a ${psu.wattage}, ${psu.efficiencyRating} certified, ${psu.modularity} PSU. It comes with ${psu.cables}. Compatibility: ${psu.compatibility}. Price: ${psu.price}.`;
         }
 
-        // Set the output context to remember the PSU model for follow-up questions
         if (psuModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/psu_details_context`,
                 lifespanCount: 5,
                 parameters: {
-                    'psu-model': psuModelRaw
+                    "psu-model": psuModelRaw,
+                    "psu-detail": requestedDetail || null
                 }
             });
-            console.log('    [PSU Handler] Set output context: psu_details_context');
-        } else {
-            console.warn('    [PSU Handler] WARNING: psuModelRaw was empty, could not set psu_details_context.');
         }
-    } else {
-        console.log(`    [PSU Handler] PSU model "${psuModelRaw}" (key: "${psuModelKey}") not found in database.`);
     }
 
-    console.log('    [PSU Handler] Fulfillment Text:', fulfillmentText);
-    console.log('    [PSU Handler] Output Contexts:', outputContexts);
+    console.log("[PSU Handler] Fulfillment Text:", fulfillmentText);
+    console.log("[PSU Handler] Output Contexts:", outputContexts);
+
     return { fulfillmentText, outputContexts };
 }
 

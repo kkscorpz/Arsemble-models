@@ -40,8 +40,8 @@ function handleCompatibilityIntent(parameters) {
     console.log('[Compatibility Handler] Called.');
     console.log('[Compatibility Handler] Received parameters:', parameters);
 
-    const formFactor = parameters['motherboard-form-factor']?.toLowerCase();
-    const socket = parameters['cpu-socket']?.toLowerCase();
+    const formFactor = parameters['motherboard-detail']?.toLowerCase();
+    const socket = parameters['cpu_detail_type']?.toLowerCase();
 
     // Handle requests for form factor definitions
     if (formFactor) {

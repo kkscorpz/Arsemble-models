@@ -160,3 +160,6 @@ function handleStorageIntent(parameters, inputContexts, projectId, sessionId) {
 }
 
 module.exports = { handleStorageIntent };
+
+const { handleCompatibilityIntent } = require('./compatibility-handler');
+
