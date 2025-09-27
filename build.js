@@ -45,9 +45,15 @@ const builds = {
     }
 };
 
-// Handler function right in the same file
+// Handler function with normalization (no username)
 function handleBuildIntent(parameters) {
-    const buildType = parameters['build_type']?.toLowerCase();
+    let buildType = parameters['build_type']?.toLowerCase();
+
+    // Normalize synonyms and typos
+    if (buildType === 'high-range' || buildType === 'high end' || buildType === 'high' || buildType === 'premium' || buildType === 'advanced') buildType = 'high-end';
+    if (buildType === 'midrange' || buildType === 'mid range' || buildType === 'middle' || buildType === 'intermediate') buildType = 'mid-range';
+    if (buildType === 'entry level' || buildType === 'beginner' || buildType === 'basic') buildType = 'entry-level';
+
     const build = builds[buildType];
 
     if (!build) return "I don't have that build type. Please choose entry-level, mid-range, or high-end.";
