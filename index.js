@@ -13,6 +13,7 @@ const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
 const { handleStorageIntent } = require('./storage-model'); 
 const { handlePSUIntent } = require('./psu-model');
+const { handleBuildIntent } = require('./builds');
 
 
 app.use(express.json()); 
