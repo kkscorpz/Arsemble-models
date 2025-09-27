@@ -13,7 +13,7 @@ const { handleCaseFanIntent } = require('./case-fan-model');
 const { handleCPUCoolerIntent } = require('./cpu-cooler-model');
 const { handleStorageIntent } = require('./storage-model'); 
 const { handlePSUIntent } = require('./psu-model');
-const { handleCompatibilityIntent } = require('./compatibility-handler');
+
 
 app.use(express.json()); 
 
@@ -100,11 +100,11 @@ app.post('/webhook', (req, res) => {
         fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
         fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
     }
-    else if (intentDisplayName === 'Get_Compatibility_Details') {
-        const handlerResult = handleCompatibilityIntent(parameters, inputContexts, projectId, sessionId);
-        fulfillmentResponse.fulfillmentText = storageHandlerResult.fulfillmentText;
-        fulfillmentResponse.outputContexts = storageHandlerResult.outputContexts;
+    else if (intentDisplayName === 'Get_Build_Details') {
+    const result = handleBuildIntent(parameters);
+    fulfillmentResponse.fulfillmentText = result;
     }
+
     // Fallback for any intent not explicitly handled above
     else {
         console.warn(`[Webhook] Unhandled intent received: "${intentDisplayName}".`);
