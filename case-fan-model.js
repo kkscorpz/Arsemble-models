@@ -8,7 +8,7 @@ const caseFanDatabase = {
         noiseLevel: "20 dBA",
         rgb: "Addressable RGB",
         compatibility: "Requires a 120mm fan mount in your PC case. For RGB, it needs a compatible motherboard header (usually 3-pin 5V ARGB) or a dedicated controller. Check if your case has enough fan mounts.",
-        price: "₱250" // Added price
+        price: "₱250"
     },
     "cooler master sickleflow 120 argb": {
         name: "Cooler Master SickleFlow 120 ARGB",
@@ -18,7 +18,7 @@ const caseFanDatabase = {
         noiseLevel: "8-27 dBA",
         rgb: "Addressable RGB",
         compatibility: "Requires a 120mm fan mount. For ARGB, needs a compatible 3-pin 5V ARGB header or controller. Optimal for case intake/exhaust due to high airflow.",
-        price: "₱600" // Added price
+        price: "₱600"
     },
     "arctic p12 pwm pst": {
         name: "Arctic P12 PWM PST",
@@ -29,7 +29,7 @@ const caseFanDatabase = {
         noiseLevel: "0.3 Sone",
         rgb: "No RGB",
         compatibility: "Ideal for radiators or restricted airflow areas due to high static pressure. Uses a 4-pin PWM connector and 'PST' allows daisy-chaining fans, requiring fewer motherboard headers. Ensure your motherboard has enough PWM headers.",
-        price: "₱450" // Added price
+        price: "₱450"
     }
 };
 
@@ -55,7 +55,7 @@ const caseFanModelMap = {
 
 /**
  * Handles Dialogflow intents related to Case Fan information.
- * @param {object} parameters - The parameters extracted by Dialogflow, including 'case-fan-model' and 'requested_detail'.
+ * @param {object} parameters - The parameters extracted by Dialogflow, including 'case-fan-model' and 'case_fan_detail_type'.
  * @param {array} inputContexts - The input contexts from Dialogflow request.
  * @param {string} projectId - The Dialogflow project ID.
  * @param {string} sessionId - The Dialogflow session ID.
@@ -67,7 +67,7 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
     console.log('    [Case Fan Handler] Received inputContexts:', inputContexts);
 
     let caseFanModelRaw = parameters["case-fan-model"];
-    const requestedDetail = parameters.requested_detail;
+    const requestedDetail = parameters["case_fan_detail_type"];
 
     let caseFanModelKey;
     if (caseFanModelRaw) {
@@ -75,6 +75,7 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
         caseFanModelKey = caseFanModelMap[lowerCaseRaw] || lowerCaseRaw;
     }
 
+    // Retrieve from context if missing
     if (!caseFanModelKey && inputContexts && inputContexts.length > 0) {
         const fanContext = inputContexts.find(context => context.name.endsWith('/contexts/case_fan_details_context'));
         if (fanContext && fanContext.parameters && fanContext.parameters['case-fan-model']) {
@@ -92,13 +93,22 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
     const fan = caseFanDatabase[caseFanModelKey];
 
     if (fan) {
-        if (requestedDetail && fan[requestedDetail] !== undefined) {
-            fulfillmentText = `For the ${fan.name}, the ${requestedDetail} is: ${fan[requestedDetail]}.`;
-            console.log(`    [Case Fan Handler] Responding with specific detail: ${requestedDetail}`);
-        } else if (requestedDetail) {
-            fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${fan.name}.`;
-            console.log(`    [Case Fan Handler] Requested detail "${requestedDetail}" not found for ${fan.name}.`);
+        if (requestedDetail) {
+            // normalize detail key (remove spaces, lowercase)
+            const detailKey = requestedDetail.toLowerCase().replace(/\s+/g, "");
+            const matchingKey = Object.keys(fan).find(k =>
+                k.toLowerCase().replace(/\s+/g, "").includes(detailKey)
+            );
+
+            if (matchingKey) {
+                fulfillmentText = `For the ${fan.name}, the ${matchingKey} is: ${fan[matchingKey]}.`;
+                console.log(`    [Case Fan Handler] Responding with specific detail: ${matchingKey}`);
+            } else {
+                fulfillmentText = `Sorry, I don't have information about the ${requestedDetail} for ${fan.name}.`;
+                console.log(`    [Case Fan Handler] Requested detail "${requestedDetail}" not found for ${fan.name}.`);
+            }
         } else {
+            // General specs if no detail requested
             let response = `The ${fan.name} is a ${fan.size} case fan. `;
             response += `It runs at ${fan.rpmRange}, providing ${fan.airflow} airflow `;
             if (fan.staticPressure) {
@@ -112,6 +122,7 @@ function handleCaseFanIntent(parameters, inputContexts, projectId, sessionId) {
             console.log('    [Case Fan Handler] Responding with general info.');
         }
 
+        // Save context for follow-up questions
         if (caseFanModelRaw) {
             outputContexts.push({
                 name: `projects/${projectId}/agent/sessions/${sessionId}/contexts/case_fan_details_context`,
