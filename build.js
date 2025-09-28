@@ -1,5 +1,3 @@
-// builds.js
-
 const builds = {
     "entry-level": {
         name: "Entry-Level Build",
@@ -45,24 +43,23 @@ const builds = {
     }
 };
 
-// Handler function with normalization (no username)
+// Handler function
 function handleBuildIntent(parameters) {
-    let buildType = parameters['build_type']?.toLowerCase();
-
-    // Normalize synonyms and typos
-    if (buildType === 'high-range' || buildType === 'high end' || buildType === 'high' || buildType === 'premium' || buildType === 'advanced') buildType = 'high-end';
-    if (buildType === 'midrange' || buildType === 'mid range' || buildType === 'middle' || buildType === 'intermediate') buildType = 'mid-range';
-    if (buildType === 'entry level' || buildType === 'beginner' || buildType === 'basic') buildType = 'entry-level';
+    const buildType = parameters?.build_type;
+    if (!buildType || !builds[buildType]) {
+        return "Sorry, I couldn’t find that build type. Please try entry-level, mid-range, or high-end.";
+    }
 
     const build = builds[buildType];
+    let response = `Here’s a recommended ${build.name}:\n\n`;
 
-    if (!build) return "I don't have that build type. Please choose entry-level, mid-range, or high-end.";
-
-    let response = `${build.name} (Total: ₱${build.total})\n\nComponents:\n`;
     build.components.forEach(c => {
-        response += `- ${c.component}: ${c.model} | ₱${c.price} | ${c.notes}\n`;
+        response += `- ${c.component}: ${c.model} (₱${c.price})\n`;
     });
+
+    response += `\n💰 Total Estimated Cost: ₱${build.total}`;
     return response;
 }
 
+// ✅ Export properly
 module.exports = { handleBuildIntent };
